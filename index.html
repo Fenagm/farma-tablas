@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farmacia Clínica</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0d1b2a;--ink2:#1a2e45;--ink3:#243d57;
+  --sea:#00b4b4;--sea-l:#00d4d4;--sea-pale:#e8fafa;--sea-pale2:#d0f4f4;
+  --amber:#f0a830;--rose:#e05565;--sage:#38c47a;--copper:#d4784a;
+  --paper:#f6f4ef;--paper2:#ede9e1;--paper3:#e0dbd0;
+  --g1:#ede9e1;--g2:#c8c2b6;--g3:#8a8478;--g4:#5c5850;
+  --white:#fffef9;
+  --sidebar:280px;  /* Reducido de 300px a 280px */
+  --header:60px;--bottom-nav:58px;
+  --r:12px;
+  --shadow:0 1px 3px rgba(13,27,42,.06), 0 4px 16px rgba(13,27,42,.08);
+  --shadow-lg:0 8px 32px rgba(13,27,42,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);height:100vh;overflow:hidden;}
+
+/* LOGIN */
+#login{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 120% 80% at 50% 0%, var(--ink3) 0%, var(--ink) 100%);}
+.login-bg{position:absolute;inset:0;overflow:hidden;}
+.login-bg::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle, rgba(0,180,180,.12) 0%, transparent 70%);top:-100px;left:50%;transform:translateX(-50%);}
+.login-bg::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.015) 39px,rgba(255,255,255,.015) 40px),
+  repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.015) 39px,rgba(255,255,255,.015) 40px);}
+.lcard{position:relative;background:var(--white);border-radius:20px;padding:48px 44px;width:380px;
+  box-shadow:0 40px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06);}
+.lcard-eyebrow{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sea);margin-bottom:8px;}
+.lcard h1{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--ink);line-height:1.15;margin-bottom:6px;}
+.lcard h1 em{font-style:italic;font-weight:300;color:var(--g3);}
+.lcard-sub{font-size:12px;color:var(--g3);margin-bottom:36px;line-height:1.5;}
+.lfield{margin-bottom:16px;}
+.lfield label{display:block;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--g4);margin-bottom:6px;}
+.lfield input{width:100%;border:1.5px solid var(--g1);border-radius:10px;padding:12px 14px;
+  font-family:'DM Mono',monospace;font-size:13.5px;color:var(--ink);outline:none;
+  transition:border-color .18s,box-shadow .18s;background:var(--paper);}
+.lfield input:focus{border-color:var(--sea);box-shadow:0 0 0 3px rgba(0,180,180,.12);background:var(--white);}
+.lbtn{width:100%;background:var(--ink);color:var(--white);border:none;border-radius:10px;
+  padding:14px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .18s;margin-top:6px;}
+.lbtn:hover{background:var(--ink2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(13,27,42,.3);}
+.lbtn:active{transform:translateY(0);}
+.lerr{color:var(--rose);font-size:12px;margin-top:10px;display:none;text-align:center;background:#fef1f2;border-radius:6px;padding:8px;}
+.lcard-deco{position:absolute;top:20px;right:24px;font-size:32px;opacity:.08;}
+
+/* APP SHELL */
+#app{display:none;flex-direction:column;height:100vh;}
+.hdr{height:var(--header);background:var(--ink);display:flex;align-items:center;
+  padding:0 20px 0 24px;gap:14px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;z-index:10;}
+.hdr-logo{display:flex;align-items:center;gap:10px;}
+.hdr-logo-mark{width:30px;height:30px;border-radius:8px;background:var(--sea);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hdr-logo-mark svg{width:16px;height:16px;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;}
+.hdr-logo-text{font-family:'Fraunces',serif;color:var(--white);font-size:15px;font-weight:600;letter-spacing:.01em;white-space:nowrap;}
+.hdr-logo-text span{color:var(--sea);}
+.hdr-nav{display:flex;gap:2px;margin-left:20px;flex:1;}
+.hnav-btn{background:none;border:none;color:rgba(255,255,255,.45);padding:6px 14px;border-radius:8px;
+  font-size:12.5px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.hnav-btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);}
+.hnav-btn.on{background:rgba(255,255,255,.12);color:var(--white);}
+.hdr-btns{display:flex;gap:6px;align-items:center;}
+.hbtn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);
+  border-radius:8px;padding:6px 13px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;}
+.hbtn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:var(--white);}
+.hbtn.accent{background:rgba(0,180,180,.15);border-color:rgba(0,180,180,.3);color:var(--sea);}
+.hbtn.accent:hover{background:rgba(0,180,180,.25);}
+
+/* BOTTOM NAV mobile */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;
+  height:var(--bottom-nav);background:var(--ink);border-top:1px solid rgba(255,255,255,.1);
+  padding:0 8px;align-items:center;justify-content:space-around;}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;background:none;border:none;cursor:pointer;padding:6px 4px;border-radius:10px;
+  color:rgba(255,255,255,.4);transition:all .15s;}
+.bnav-btn .bnav-ico{font-size:20px;line-height:1;}
+.bnav-btn .bnav-lbl{font-size:9.5px;font-weight:600;letter-spacing:.02em;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.bnav-btn.on{color:var(--sea);}
+
+/* LAYOUT / PAGES */
+.layout{display:flex;flex:1;overflow:hidden;}
+.page{display:none;flex:1;overflow:hidden;}
+.page.on{display:flex;}
+
+/* SIDEBAR - MÁS ANGOSTA */
+.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--white);border-right:1px solid var(--g1);display:flex;flex-direction:column;overflow:hidden;}
+.srch{padding:14px 14px 10px;}
+.srch-wrap{position:relative;}
+.srch-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--g3);pointer-events:none;}
+.srch-inp{width:100%;border:1.5px solid var(--g1);border-radius:10px;padding:10px 10px 10px 34px;
+  font-size:12.5px;font-family:'DM Sans',sans-serif;outline:none;color:var(--ink);background:var(--paper);transition:all .18s;}
+.srch-inp:focus{border-color:var(--sea);background:var(--white);box-shadow:0 0 0 3px rgba(0,180,180,.1);}
+.fam-wrap{padding:8px 14px 10px;border-bottom:1px solid var(--g1);}
+.fam-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--g3);margin-bottom:7px;}
+.fam-row{display:flex;flex-wrap:wrap;gap:4px;}
+.fbtn{font-size:10px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--g1);background:none;color:var(--g3);
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap;font-weight:500;}
+.fbtn.on{background:var(--ink);border-color:var(--ink);color:var(--white);}
+.fbtn:hover:not(.on){border-color:var(--ink2);color:var(--ink2);}
+.list-meta{padding:8px 14px 4px;font-size:10px;color:var(--g3);letter-spacing:.04em;font-weight:500;text-transform:uppercase;}
+.abx-list{overflow-y:auto;flex:1;}
+.abx-item{padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--g1);transition:background .1s;display:flex;align-items:center;gap:10px;}
+.abx-item:hover{background:var(--paper);}
+.abx-item.sel{background:var(--sea-pale);border-left:3px solid var(--sea);}
+.abx-item.sel .aname{color:var(--ink2);}
+.aname{font-size:13px;font-weight:500;color:var(--ink);flex:1;line-height:1.3;}
+.atag{font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:20px;background:var(--g1);color:var(--g3);white-space:nowrap;flex-shrink:0;}
+
+/* MAIN - MÁS ESPACIO */
+.main{flex:1;overflow-y:auto;background:var(--paper);}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--g3);gap:14px;text-align:center;padding:40px;}
+.empty-ico{font-size:52px;opacity:.2;}
+.empty-txt{font-size:13px;font-weight:500;}
+.empty-hint{font-size:11px;color:var(--g2);}
+
+/* DETAIL - MÁS ANCHO */
+.detail{padding:30px 40px 80px;max-width:1100px;margin:0 auto;}
+.d-hdr{margin-bottom:24px;padding-bottom:22px;border-bottom:1px solid var(--paper3);}
+.d-fam{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;padding:4px 11px;border-radius:20px;background:var(--ink);color:var(--white);margin-bottom:12px;}
+.d-name{font-family:'Fraunces',serif;font-size:42px;font-weight:600;color:var(--ink);line-height:1.05;margin-bottom:8px;letter-spacing:-.01em;}
+.cards-grid{display:grid;gap:16px;}
+.two-col{grid-template-columns:1fr 1fr;}
+.three-col{grid-template-columns:1fr 1fr 1fr;}
+.card{background:var(--white);border-radius:var(--r);padding:20px 24px;border:1px solid var(--paper3);box-shadow:var(--shadow);}
+.card-ttl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sea);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.card-ttl::before{content:'';width:16px;height:1.5px;background:var(--sea);}
+.body-txt{font-size:14px;line-height:1.7;color:var(--ink);white-space:pre-wrap;}
+.pill{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.04em;padding:2px 8px;border-radius:20px;margin:1px;}
+.pill-green{background:#d1fae5;color:#047857;}
+.pill-amber{background:#fef3c7;color:#b45309;}
+.pill-red{background:#fee2e2;color:#b91c1c;}
+.section-divider{display:flex;align-items:center;gap:10px;margin:22px 0 14px;}
+.section-divider span{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--g3);white-space:nowrap;}
+.section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:var(--paper3);}
+
+/* DETAIL TABS */
+.detail-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--paper2);border-radius:12px;padding:4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.detail-tabs::-webkit-scrollbar{height:0;}
+.dtab{padding:8px 16px;border-radius:9px;border:none;background:none;font-size:12.5px;font-weight:500;color:var(--g3);
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.dtab.on{background:var(--white);color:var(--ink);font-weight:600;box-shadow:0 1px 4px rgba(13,27,42,.1);}
+.dtab:hover:not(.on){color:var(--ink2);}
+.dtab-panel{display:none;}
+.dtab-panel.on{display:block;}
+
+/* SUMMARY */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.sum-card{background:var(--white);border-radius:var(--r);padding:14px 16px;border:1px solid var(--paper3);box-shadow:var(--shadow);}
+.sum-card:first-child{grid-column:1/-1;}
+.sum-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sea);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.sum-label::before{content:'';width:12px;height:1.5px;background:var(--sea);}
+.sum-value{font-size:13px;line-height:1.65;color:var(--ink);white-space:pre-wrap;}
+.sum-value.sum-small{font-size:12px;color:var(--g4);}
+.sum-main .sum-value{font-size:15px;font-weight:500;}
+
+/* TOOLS */
+.tools-section{margin-top:4px;}
+.tools-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.ttab{padding:7px 14px;border-radius:8px;border:1.5px solid var(--paper3);background:none;
+  font-size:11.5px;font-weight:500;color:var(--g3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.ttab.on{background:var(--ink);border-color:var(--ink);color:var(--white);}
+.ttab:hover:not(.on){border-color:var(--g2);color:var(--ink);}
+.tool-panel{display:none;}
+.tool-panel.on{display:block;}
+.tool-card{background:var(--white);border-radius:var(--r);padding:20px 24px;border:1px solid var(--paper3);box-shadow:var(--shadow);}
+.tool-card h3{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+.tool-card p{font-size:11.5px;color:var(--g3);margin-bottom:16px;line-height:1.5;}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;}
+.tf{display:flex;flex-direction:column;gap:5px;}
+.tf label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--g4);}
+.tf input,.tf select{border:1.5px solid var(--g1);border-radius:8px;padding:9px 11px;
+  font-size:13px;font-family:'DM Mono',monospace;color:var(--ink);outline:none;background:var(--paper);transition:border-color .18s;}
+.tf input:focus,.tf select:focus{border-color:var(--sea);box-shadow:0 0 0 3px rgba(0,180,180,.1);}
+.tf select{font-family:'DM Sans',sans-serif;font-size:12px;}
+.calc-btn{padding:10px 22px;background:var(--sea);color:var(--ink);border:none;border-radius:8px;
+  font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.calc-btn:hover{background:var(--sea-l);transform:translateY(-1px);}
+.result-box{margin-top:14px;padding:14px 16px;background:var(--sea-pale);border:1.5px solid var(--sea-pale2);border-radius:10px;display:none;}
+.result-box.show{display:block;}
+.result-main{font-family:'Fraunces',serif;font-size:26px;color:var(--ink);font-weight:600;margin-bottom:4px;}
+.result-sub{font-size:12px;color:var(--g3);line-height:1.6;}
+.result-warn{margin-top:10px;font-size:11px;color:var(--copper);background:#fef5ec;border-radius:6px;padding:8px 10px;border:1px solid #fde3c2;}
+
+/* ESTABILIDADES */
+.estab-page{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--paper);}
+.estab-toolbar{padding:12px 20px;background:var(--white);border-bottom:1px solid var(--g1);display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-shrink:0;}
+.estab-srch-wrap{position:relative;flex:1;min-width:180px;}
+.estab-srch-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--g3);pointer-events:none;}
+.estab-srch{width:100%;border:1.5px solid var(--g1);border-radius:10px;padding:9px 10px 9px 34px;
+  font-size:12.5px;font-family:'DM Sans',sans-serif;outline:none;color:var(--ink);background:var(--paper);transition:all .18s;}
+.estab-srch:focus{border-color:var(--sea);background:var(--white);box-shadow:0 0 0 3px rgba(0,180,180,.1);}
+.estab-tipo-filter{display:flex;gap:4px;}
+.etfbtn{font-size:11px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--g1);background:none;color:var(--g3);
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap;font-weight:500;}
+.etfbtn.on{background:var(--ink);border-color:var(--ink);color:var(--white);}
+.estab-meta{font-size:10px;color:var(--g3);padding:6px 20px 2px;letter-spacing:.04em;font-weight:500;text-transform:uppercase;flex-shrink:0;}
+.estab-table-wrap{flex:1;overflow:auto;}
+.estab-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.estab-table thead th{position:sticky;top:0;background:var(--ink);color:rgba(255,255,255,.7);
+  font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:10px 14px;text-align:left;white-space:nowrap;z-index:2;}
+.estab-table tbody tr{border-bottom:1px solid var(--g1);transition:background .08s;}
+.estab-table tbody td{padding:10px 14px;vertical-align:top;color:var(--ink);line-height:1.5;}
+.drug-name-cell{font-weight:600;font-size:13px;color:var(--ink2);}
+.etpill{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.etpill-qmt{background:#dbeafe;color:#1d4ed8;}
+.etpill-noqmt{background:#d1fae5;color:#047857;}
+.estab-time{font-family:'DM Mono',monospace;font-size:11.5px;}
+.estab-time.na{color:var(--g3);font-style:italic;font-family:'DM Sans',sans-serif;}
+.estab-obs-cell{font-size:11.5px;color:var(--g4);max-width:240px;}
+.estab-loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--g3);gap:10px;font-size:13px;}
+
+/* MODAL ADMIN ANTIBIÓTICOS */
+#admin-panel{display:none;position:fixed;inset:0;background:rgba(13,27,42,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+#admin-panel.open{display:flex;}
+.admin-modal{background:var(--white);border-radius:20px;width:min(700px,95vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-lg);}
+.admin-hdr{padding:20px 26px;border-bottom:1px solid var(--g1);display:flex;align-items:center;gap:12px;}
+.admin-hdr h2{font-size:15px;font-weight:600;color:var(--ink);flex:1;}
+.admin-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--g3);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.admin-close:hover{background:var(--g1);color:var(--ink);}
+.admin-body{flex:1;overflow-y:auto;padding:20px 26px;}
+.admin-select{width:100%;border:1.5px solid var(--g1);border-radius:10px;padding:10px 13px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--ink);outline:none;margin-bottom:16px;background:var(--paper);}
+.admin-select:focus{border-color:var(--sea);}
+.afield{margin-bottom:14px;}
+.afield label{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--g4);margin-bottom:5px;}
+.afield input,.afield textarea{width:100%;border:1.5px solid var(--g1);border-radius:8px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--ink);outline:none;transition:border .2s;background:var(--white);}
+.afield textarea{resize:vertical;min-height:80px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.6;}
+.afield input:focus,.afield textarea:focus{border-color:var(--sea);box-shadow:0 0 0 3px rgba(0,180,180,.1);}
+.admin-ftr{padding:16px 26px;border-top:1px solid var(--g1);display:flex;gap:8px;justify-content:flex-end;}
+.asbtn{padding:9px 20px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all .15s;}
+.asbtn-save{background:var(--sea);color:var(--ink);}
+.asbtn-save:hover{background:var(--sea-l);}
+.asbtn-del{background:none;border:1.5px solid var(--rose);color:var(--rose);}
+.asbtn-del:hover{background:var(--rose);color:var(--white);}
+.asbtn-cancel{background:none;border:1.5px solid var(--g1);color:var(--g4);}
+.asbtn-cancel:hover{background:var(--g1);}
+.admin-notice{font-size:11.5px;color:#047857;display:none;padding:10px 13px;background:#d1fae5;border-radius:8px;margin-bottom:12px;font-weight:500;}
+
+/* MODAL ADMIN ESTABILIDADES */
+#estab-admin-panel{display:none;position:fixed;inset:0;background:rgba(13,27,42,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+#estab-admin-panel.open{display:flex;}
+#estab-admin-panel .admin-modal{width:min(600px,95vw);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--g1);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--g2);}
+
+/* RESPONSIVE MÓVIL */
+@media(max-width:768px){
+  :root{--sidebar:100%;--header:44px;}
+  .hdr{height:44px;padding:0 12px 0 14px;}
+  .hdr-logo-text{display:none;}
+  .hdr-nav{display:none;}
+  .bottom-nav{display:flex;}
+  .layout{flex-direction:column;}
+  
+  .sidebar{width:100%;max-height:45vh;border-right:none;border-bottom:1px solid var(--g1);display:flex;flex-direction:column;overflow:hidden;}
+  .abx-list{max-height:calc(45vh - 110px);overflow-y:auto;}
+  .fam-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:8px;}
+  .fam-row::-webkit-scrollbar{height:3px;}
+  .fbtn{font-size:11px;padding:4px 12px;white-space:nowrap;}
+  .aname{font-size:14px;}
+  .atag{font-size:9px;}
+  
+  .detail{padding:14px 16px 80px;}
+  .two-col,.three-col{grid-template-columns:1fr;}
+  .tool-grid{grid-template-columns:1fr;}
+  .d-name{font-size:28px;}
+  .detail-tabs{border-radius:10px;}
+  .dtab{font-size:11px;padding:7px 11px;}
+  .page.on{padding-bottom:var(--bottom-nav);}
+  .page.on{flex-direction:column;}
+  .main{min-height:0;}
+  
+  .estab-table th,.estab-table td{font-size:11px;padding:8px 10px;}
+  .drug-name-cell{font-size:12px;}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="login-bg"></div>
+  <div class="lcard">
+    <div class="lcard-deco">💊</div>
+    <div class="lcard-eyebrow">Farmacia Clínica</div>
+    <h1>Acceso al<br><em>Sistema</em></h1>
+    <p class="lcard-sub">Ingresá tus credenciales para continuar</p>
+    <div class="lfield"><label>Usuario (Correo)</label><input id="usr" type="text" autocomplete="username" placeholder="usuario@hospital.ar"></div>
+    <div class="lfield"><label>Contraseña</label><input id="pwd" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="lbtn" onclick="doLogin()">Ingresar →</button>
+    <div class="lerr" id="lerr">Usuario o contraseña incorrectos.</div>
+  </div>
+</div>
+
+<div id="app">
+  <header class="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-logo-mark">
+        <svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="hdr-logo-text">Farmacia <span>Clínica</span></div>
+    </div>
+    <nav class="hdr-nav">
+      <button class="hnav-btn on" id="nav-abx" onclick="switchPage('page-abx',this)"><span>💊</span> Antibióticos</button>
+      <button class="hnav-btn" id="nav-estab" onclick="switchPage('page-estab',this)"><span>🧪</span> Estabilidades</button>
+    </nav>
+    <div class="hdr-btns">
+      <button class="hbtn accent" id="adminBtn" onclick="openAdmin()" style="display:none">⚙ Admin</button>
+      <button class="hbtn" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ANTIBIÓTICOS -->
+    <div class="page on" id="page-abx">
+      <aside class="sidebar">
+        <div class="srch">
+          <div class="srch-wrap">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+            <input class="srch-inp" id="srch" type="text" placeholder="Buscar en todas las categorías…" oninput="filterList()">
+          </div>
+        </div>
+        <div class="fam-wrap">
+          <div class="fam-lbl">Familia</div>
+          <div class="fam-row" id="fam-row"></div>
+        </div>
+        <div class="list-meta" id="list-meta"></div>
+        <div class="abx-list" id="abx-list"></div>
+      </aside>
+      <main class="main" id="main">
+        <div class="empty">
+          <div class="empty-ico">💊</div>
+          <div class="empty-txt">Seleccioná un antibiótico para ver su ficha</div>
+          <div class="empty-hint">Usá el buscador o filtrá por familia</div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ESTABILIDADES -->
+    <div class="page" id="page-estab">
+      <div class="estab-page">
+        <div class="estab-toolbar">
+          <div class="estab-srch-wrap">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+            <input class="estab-srch" id="estab-srch" type="text" placeholder="Buscar fármaco, vehículo, observaciones…" oninput="filterEstab()">
+          </div>
+          <div class="estab-tipo-filter">
+            <button class="etfbtn on" onclick="filterEstabTipo('',this)">Todos</button>
+            <button class="etfbtn" onclick="filterEstabTipo('QMT',this)">QMT</button>
+            <button class="etfbtn" onclick="filterEstabTipo('NO_QMT',this)">No QMT</button>
+          </div>
+          <button class="hbtn accent" onclick="openEstabAdmin()">＋ Agregar</button>
+        </div>
+        <div class="estab-meta" id="estab-meta"></div>
+        <div class="estab-table-wrap">
+          <table class="estab-table">
+            <thead>
+              <tr>
+                <th>Fármaco</th>
+                <th>Tipo</th>
+                <th>Presentación</th>
+                <th>Vehículo dilución</th>
+                <th>Estab. dil. amb.</th>
+                <th>Estab. dil. ref.</th>
+                <th>T. infusión</th>
+                <th>Observaciones</th>
+              </tr>
+            </thead>
+            <tbody id="estab-tbody"></tbody>
+          </table>
+          <div id="estab-loading" class="estab-loading">Cargando datos…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="bnav-btn on" id="bnav-abx" onclick="switchPage('page-abx',this,true)">
+      <span class="bnav-ico">💊</span><span class="bnav-lbl">Antibióticos</span>
+    </button>
+    <button class="bnav-btn" id="bnav-estab" onclick="switchPage('page-estab',this,true)">
+      <span class="bnav-ico">🧪</span><span class="bnav-lbl">Estabilidades</span>
+    </button>
+  </nav>
+</div>
+
+<!-- MODAL ADMIN ANTIBIÓTICOS -->
+<div id="admin-panel">
+  <div class="admin-modal">
+    <div class="admin-hdr">
+      <h2>⚙ Administrar Antibióticos</h2>
+      <button class="admin-close" onclick="closeAdmin()">×</button>
+    </div>
+    <div class="admin-body">
+      <select id="admin-select" class="admin-select" onchange="loadAdminData(this.value)"><option value="">-- Crear Nuevo --</option></select>
+      <div id="admin-notice" class="admin-notice">¡Guardado con éxito!</div>
+      <div class="afield"><label>Nombre (ID)</label><input type="text" id="af-name"></div>
+      <div class="afield"><label>Familia</label><input type="text" id="af-fam"></div>
+      <div class="afield"><label>Dosificación</label><input type="text" id="af-dose"></div>
+      <div class="afield"><label>Ajuste Renal</label><textarea id="af-renal"></textarea></div>
+      <div class="afield"><label>Ajuste en Obesos</label><input type="text" id="af-obesos"></div>
+      <div class="afield"><label>Embarazo</label><input type="text" id="af-embarazo"></div>
+      <div class="afield"><label>Lactancia</label><input type="text" id="af-lactancia"></div>
+      <div class="afield"><label>Observaciones</label><textarea id="af-obs"></textarea></div>
+      <div class="afield"><label>Interacciones</label><textarea id="af-inter"></textarea></div>
+      <div class="afield"><label>Farmacocinética</label><textarea id="af-pk"></textarea></div>
+      <div class="afield"><label>Monografía / Extra</label><textarea id="af-completo" style="min-height:150px;"></textarea></div>
+    </div>
+    <div class="admin-ftr">
+      <button class="asbtn asbtn-del" id="delBtn" onclick="deleteAntibiotic()" style="display:none">Eliminar</button>
+      <button class="asbtn asbtn-cancel" onclick="closeAdmin()">Cancelar</button>
+      <button class="asbtn asbtn-save" onclick="saveData()">Guardar en la Nube</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADMIN ESTABILIDADES -->
+<div id="estab-admin-panel">
+  <div class="admin-modal">
+    <div class="admin-hdr">
+      <h2>🧪 Administrar Estabilidades</h2>
+      <button class="admin-close" onclick="closeEstabAdmin()">×</button>
+    </div>
+    <div class="admin-body">
+      <select id="admin-estab-select" class="admin-select" onchange="loadEstabAdminData(this.value)">
+        <option value="">-- Crear Nueva --</option>
+      </select>
+      <div id="admin-estab-notice" class="admin-notice">¡Guardado con éxito!</div>
+      
+      <div class="afield"><label>Nombre (ID)</label><input type="text" id="ea-name"></div>
+      <div class="afield"><label>Tipo</label>
+        <select id="ea-tipo" class="admin-select">
+          <option value="QMT">QMT</option>
+          <option value="NO_QMT">No QMT</option>
+        </select>
+      </div>
+      <div class="afield"><label>Presentación</label><input type="text" id="ea-presentacion"></div>
+      <div class="afield"><label>Vehículo de dilución</label><input type="text" id="ea-vehiculo"></div>
+      <div class="afield"><label>Estabilidad diluido Ambiente</label><input type="text" id="ea-amb"></div>
+      <div class="afield"><label>Estabilidad diluido Refrigerado</label><input type="text" id="ea-ref"></div>
+      <div class="afield"><label>Tiempo de infusión</label><input type="text" id="ea-inf"></div>
+      <div class="afield"><label>Observaciones</label><textarea id="ea-obs" rows="3"></textarea></div>
+      <div class="afield"><label>Fuente</label><textarea id="ea-fuente" rows="2" placeholder="Referencia bibliográfica"></textarea></div>
+    </div>
+    <div class="admin-ftr">
+      <button class="asbtn asbtn-del" id="delEstabBtn" onclick="deleteEstabilidad()" style="display:none">Eliminar</button>
+      <button class="asbtn asbtn-cancel" onclick="closeEstabAdmin()">Cancelar</button>
+      <button class="asbtn asbtn-save" onclick="saveEstabilidad()">Guardar en la Nube</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
