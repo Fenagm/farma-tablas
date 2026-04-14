@@ -109,10 +109,11 @@ function filterFam(fam) { activeFam = fam; buildFamFilters(); filterList(); }
 function filterList() {
   const q = document.getElementById('srch').value.toLowerCase();
   const list = document.getElementById('abx-list');
+  const metaDiv = document.getElementById('list-meta');
   list.innerHTML = '';
   let count = 0;
   
-  // Si hay un antibiótico seleccionado, mostrar SOLO ese
+  // Si hay un antibiótico seleccionado, mostrar SOLO ese + botón limpiar
   if (selName) {
     const d = ABX[selName];
     if (d && (activeFam ? d.familia === activeFam : true)) {
@@ -123,11 +124,11 @@ function filterList() {
           <div class="atag">${d.familia || ''}</div>
         </div>`;
     }
-    document.getElementById('list-meta').innerText = `${count} antibiótico${count !== 1 ? 's' : ''}`;
+    metaDiv.innerHTML = `<span>${count} antibiótico</span><button class="clear-btn" onclick="clearSelection()">✖ Limpiar</button>`;
     return;
   }
   
-  // Sin selección, mostrar todos los que coinciden con búsqueda/familia
+  // Sin selección: mostrar todos los que coinciden con búsqueda/familia
   Object.keys(ABX).sort().forEach(name => {
     const d = ABX[name];
     const searchableText = [
@@ -139,13 +140,13 @@ function filterList() {
     if (searchableText.includes(q) && (activeFam ? d.familia === activeFam : true)) {
       count++;
       list.innerHTML += `
-        <div class="abx-item ${name === selName ? 'sel' : ''}" onclick="renderDetail('${name}')">
+        <div class="abx-item" onclick="renderDetail('${name}')">
           <div class="aname">${name}</div>
           <div class="atag">${d.familia || ''}</div>
         </div>`;
     }
   });
-  document.getElementById('list-meta').innerText = `${count} antibiótico${count !== 1 ? 's' : ''}`;
+  metaDiv.innerHTML = `<span>${count} antibiótico${count !== 1 ? 's' : ''}</span>`;
 }
 
 function renderDetail(name) {
@@ -428,7 +429,7 @@ function calcPicovalle() {
   box.classList.add('show');
 }
 
-// ── ESTABILIDADES TABLE ──
+// ── ESTABILIDADES TABLE (solo lectura, sin onclick) ──
 function renderEstabTable() {
   const q = document.getElementById('estab-srch').value.toLowerCase();
   const tbody = document.getElementById('estab-tbody');
@@ -456,6 +457,7 @@ function renderEstabTable() {
 
   document.getElementById('estab-meta').innerText = `${filtered.length} fármaco${filtered.length !== 1 ? 's' : ''}`;
 
+  // ⚠️ IMPORTANTE: eliminé el onclick de la fila
   tbody.innerHTML = filtered.map(e => {
     const p = (e.presentaciones && e.presentaciones[0]) || {};
     const hasMore = e.presentaciones && e.presentaciones.length > 1;
@@ -464,7 +466,7 @@ function renderEstabTable() {
     const tdAmbT = p.estab_dil_amb || '—';
     const tdRefT = p.estab_dil_ref || '—';
     const tdInfT = p.tiempo_infusion || '—';
-    return `<tr onclick="openEstabAdmin('${e._id}')">
+    return `<tr>
       <td><span class="drug-name-cell">${e.nombre}</span>${hasMore ? `<small style="margin-left:6px;color:var(--g3)">+${e.presentaciones.length-1}</small>` : ''}</td>
       <td><span class="etpill ${tipoCls}">${tipoLabel}</span></td>
       <td>${p.presentacion || '—'}</td>
@@ -476,7 +478,6 @@ function renderEstabTable() {
     </tr>`;
   }).join('');
 }
-
 function filterEstab() { renderEstabTable(); }
 function filterEstabTipo(tipo, btn) {
   estabTipoFilter = tipo;
@@ -654,7 +655,11 @@ function loadAdminData(name) {
   document.getElementById('af-completo').value = d.contenido_completo || '';
   document.getElementById('delBtn').style.display = name ? 'block' : 'none';
 }
-
+function clearSelection() {
+  selName = null;
+  filterList();
+  document.getElementById('main').innerHTML = '<div class="empty"><div class="empty-ico">💊</div><div class="empty-txt">Seleccioná un antibiótico para ver su ficha</div><div class="empty-hint">Usá el buscador o filtrá por familia</div></div>';
+}
 // ── CONTROL DE SESIÓN ──
 auth.onAuthStateChanged(async (user) => {
   const loginScreen = document.getElementById('login');
