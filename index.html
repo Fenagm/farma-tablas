@@ -13,8 +13,7 @@
   --paper:#f6f4ef;--paper2:#ede9e1;--paper3:#e0dbd0;
   --g1:#ede9e1;--g2:#c8c2b6;--g3:#8a8478;--g4:#5c5850;
   --white:#fffef9;
-  --sidebar:280px;  /* Reducido de 300px a 280px */
-  --header:60px;--bottom-nav:58px;
+  --sidebar:280px;--header:60px;--bottom-nav:58px;
   --r:12px;
   --shadow:0 1px 3px rgba(13,27,42,.06), 0 4px 16px rgba(13,27,42,.08);
   --shadow-lg:0 8px 32px rgba(13,27,42,.14);
@@ -22,7 +21,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);height:100vh;overflow:hidden;}
 
-/* LOGIN */
+/* LOGIN (igual que antes, se omite por brevedad, pero mantenelo) */
 #login{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 120% 80% at 50% 0%, var(--ink3) 0%, var(--ink) 100%);}
 .login-bg{position:absolute;inset:0;overflow:hidden;}
@@ -71,7 +70,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 .hbtn.accent{background:rgba(0,180,180,.15);border-color:rgba(0,180,180,.3);color:var(--sea);}
 .hbtn.accent:hover{background:rgba(0,180,180,.25);}
 
-/* BOTTOM NAV mobile */
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;
   height:var(--bottom-nav);background:var(--ink);border-top:1px solid rgba(255,255,255,.1);
   padding:0 8px;align-items:center;justify-content:space-around;}
@@ -82,12 +80,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 .bnav-btn .bnav-lbl{font-size:9.5px;font-weight:600;letter-spacing:.02em;font-family:'DM Sans',sans-serif;white-space:nowrap;}
 .bnav-btn.on{color:var(--sea);}
 
-/* LAYOUT / PAGES */
 .layout{display:flex;flex:1;overflow:hidden;}
 .page{display:none;flex:1;overflow:hidden;}
 .page.on{display:flex;}
 
-/* SIDEBAR - MÁS ANGOSTA */
 .sidebar{width:var(--sidebar);flex-shrink:0;background:var(--white);border-right:1px solid var(--g1);display:flex;flex-direction:column;overflow:hidden;}
 .srch{padding:14px 14px 10px;}
 .srch-wrap{position:relative;}
@@ -102,7 +98,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
   cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap;font-weight:500;}
 .fbtn.on{background:var(--ink);border-color:var(--ink);color:var(--white);}
 .fbtn:hover:not(.on){border-color:var(--ink2);color:var(--ink2);}
-.list-meta{padding:8px 14px 4px;font-size:10px;color:var(--g3);letter-spacing:.04em;font-weight:500;text-transform:uppercase;}
+.list-meta{padding:8px 14px 4px;font-size:10px;color:var(--g3);letter-spacing:.04em;font-weight:500;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
 .abx-list{overflow-y:auto;flex:1;}
 .abx-item{padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--g1);transition:background .1s;display:flex;align-items:center;gap:10px;}
 .abx-item:hover{background:var(--paper);}
@@ -110,15 +106,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 .abx-item.sel .aname{color:var(--ink2);}
 .aname{font-size:13px;font-weight:500;color:var(--ink);flex:1;line-height:1.3;}
 .atag{font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:20px;background:var(--g1);color:var(--g3);white-space:nowrap;flex-shrink:0;}
+.clear-btn{background:none;border:1px solid var(--g2);border-radius:16px;padding:2px 10px;font-size:9px;cursor:pointer;color:var(--g3);transition:all .1s;}
+.clear-btn:hover{background:var(--g1);}
 
-/* MAIN - MÁS ESPACIO */
 .main{flex:1;overflow-y:auto;background:var(--paper);}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--g3);gap:14px;text-align:center;padding:40px;}
 .empty-ico{font-size:52px;opacity:.2;}
 .empty-txt{font-size:13px;font-weight:500;}
 .empty-hint{font-size:11px;color:var(--g2);}
 
-/* DETAIL - MÁS ANCHO */
 .detail{padding:30px 40px 80px;max-width:1100px;margin:0 auto;}
 .d-hdr{margin-bottom:24px;padding-bottom:22px;border-bottom:1px solid var(--paper3);}
 .d-fam{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;letter-spacing:.1em;
@@ -139,7 +135,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 .section-divider span{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--g3);white-space:nowrap;}
 .section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:var(--paper3);}
 
-/* DETAIL TABS */
 .detail-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--paper2);border-radius:12px;padding:4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .detail-tabs::-webkit-scrollbar{height:0;}
 .dtab{padding:8px 16px;border-radius:9px;border:none;background:none;font-size:12.5px;font-weight:500;color:var(--g3);
@@ -149,7 +144,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 .dtab-panel{display:none;}
 .dtab-panel.on{display:block;}
 
-/* SUMMARY */
 .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .sum-card{background:var(--white);border-radius:var(--r);padding:14px 16px;border:1px solid var(--paper3);box-shadow:var(--shadow);}
 .sum-card:first-child{grid-column:1/-1;}
@@ -159,7 +153,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 .sum-value.sum-small{font-size:12px;color:var(--g4);}
 .sum-main .sum-value{font-size:15px;font-weight:500;}
 
-/* TOOLS */
 .tools-section{margin-top:4px;}
 .tools-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
 .ttab{padding:7px 14px;border-radius:8px;border:1.5px solid var(--paper3);background:none;
@@ -186,9 +179,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 .result-main{font-family:'Fraunces',serif;font-size:26px;color:var(--ink);font-weight:600;margin-bottom:4px;}
 .result-sub{font-size:12px;color:var(--g3);line-height:1.6;}
 .result-warn{margin-top:10px;font-size:11px;color:var(--copper);background:#fef5ec;border-radius:6px;padding:8px 10px;border:1px solid #fde3c2;}
-.clear-btn{background:none;border:1px solid var(--g2);border-radius:16px;padding:2px 10px;font-size:9px;cursor:pointer;color:var(--g3);transition:all .1s;}
-.clear-btn:hover{background:var(--g1);}
-/* ESTABILIDADES */
+
+/* ESTABILIDADES (igual que antes) */
 .estab-page{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--paper);}
 .estab-toolbar{padding:12px 20px;background:var(--white);border-bottom:1px solid var(--g1);display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-shrink:0;}
 .estab-srch-wrap{position:relative;flex:1;min-width:180px;}
@@ -242,18 +234,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 .asbtn-cancel:hover{background:var(--g1);}
 .admin-notice{font-size:11.5px;color:#047857;display:none;padding:10px 13px;background:#d1fae5;border-radius:8px;margin-bottom:12px;font-weight:500;}
 
-/* MODAL ADMIN ESTABILIDADES */
 #estab-admin-panel{display:none;position:fixed;inset:0;background:rgba(13,27,42,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
 #estab-admin-panel.open{display:flex;}
 #estab-admin-panel .admin-modal{width:min(600px,95vw);}
 
-/* SCROLLBAR */
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--g1);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--g2);}
 
-/* RESPONSIVE MÓVIL */
 @media(max-width:768px){
   :root{--sidebar:100%;--header:44px;}
   .hdr{height:44px;padding:0 12px 0 14px;}
@@ -261,7 +250,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
   .hdr-nav{display:none;}
   .bottom-nav{display:flex;}
   .layout{flex-direction:column;}
-  
   .sidebar{width:100%;max-height:45vh;border-right:none;border-bottom:1px solid var(--g1);display:flex;flex-direction:column;overflow:hidden;}
   .abx-list{max-height:calc(45vh - 110px);overflow-y:auto;}
   .fam-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:8px;}
@@ -269,7 +257,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
   .fbtn{font-size:11px;padding:4px 12px;white-space:nowrap;}
   .aname{font-size:14px;}
   .atag{font-size:9px;}
-  
   .detail{padding:14px 16px 80px;}
   .two-col,.three-col{grid-template-columns:1fr;}
   .tool-grid{grid-template-columns:1fr;}
@@ -279,7 +266,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
   .page.on{padding-bottom:var(--bottom-nav);}
   .page.on{flex-direction:column;}
   .main{min-height:0;}
-  
   .estab-table th,.estab-table td{font-size:11px;padding:8px 10px;}
   .drug-name-cell{font-size:12px;}
 }
@@ -333,7 +319,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
           <div class="fam-lbl">Familia</div>
           <div class="fam-row" id="fam-row"></div>
         </div>
-        <div class="list-meta" id="list-meta" style="display: flex; justify-content: space-between; align-items: center;"></div>
+        <div class="list-meta" id="list-meta"></div>
         <div class="abx-list" id="abx-list"></div>
       </aside>
       <main class="main" id="main">
@@ -364,19 +350,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
         <div class="estab-table-wrap">
           <table class="estab-table">
             <thead>
-              <tr>
-                <th>Fármaco</th>
-                <th>Tipo</th>
-                <th>Presentación</th>
-                <th>Vehículo dilución</th>
-                <th>Estab. dil. amb.</th>
-                <th>Estab. dil. ref.</th>
-                <th>T. infusión</th>
-                <th>Observaciones</th>
-              </tr>
+              <tr><th>Fármaco</th><th>Tipo</th><th>Presentación</th><th>Vehículo dilución</th><th>Estab. dil. amb.</th><th>Estab. dil. ref.</th><th>T. infusión</th><th>Observaciones</th></tr>
             </thead>
             <tbody id="estab-tbody"></tbody>
-          </table>
+           </table>
           <div id="estab-loading" class="estab-loading">Cargando datos…</div>
         </div>
       </div>
@@ -384,29 +361,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
   </div>
 
   <nav class="bottom-nav">
-    <button class="bnav-btn on" id="bnav-abx" onclick="switchPage('page-abx',this,true)">
-      <span class="bnav-ico">💊</span><span class="bnav-lbl">Antibióticos</span>
-    </button>
-    <button class="bnav-btn" id="bnav-estab" onclick="switchPage('page-estab',this,true)">
-      <span class="bnav-ico">🧪</span><span class="bnav-lbl">Estabilidades</span>
-    </button>
+    <button class="bnav-btn on" id="bnav-abx" onclick="switchPage('page-abx',this,true)"><span class="bnav-ico">💊</span><span class="bnav-lbl">Antibióticos</span></button>
+    <button class="bnav-btn" id="bnav-estab" onclick="switchPage('page-estab',this,true)"><span class="bnav-ico">🧪</span><span class="bnav-lbl">Estabilidades</span></button>
   </nav>
 </div>
 
 <!-- MODAL ADMIN ANTIBIÓTICOS -->
 <div id="admin-panel">
   <div class="admin-modal">
-    <div class="admin-hdr">
-      <h2>⚙ Administrar Antibióticos</h2>
-      <button class="admin-close" onclick="closeAdmin()">×</button>
-    </div>
+    <div class="admin-hdr"><h2>⚙ Administrar Antibióticos</h2><button class="admin-close" onclick="closeAdmin()">×</button></div>
     <div class="admin-body">
       <select id="admin-select" class="admin-select" onchange="loadAdminData(this.value)"><option value="">-- Crear Nuevo --</option></select>
       <div id="admin-notice" class="admin-notice">¡Guardado con éxito!</div>
       <div class="afield"><label>Nombre (ID)</label><input type="text" id="af-name"></div>
       <div class="afield"><label>Familia</label><input type="text" id="af-fam"></div>
+      <div class="afield"><label>Mecanismo de acción</label><textarea id="af-mecanismo"></textarea></div>
       <div class="afield"><label>Dosificación</label><input type="text" id="af-dose"></div>
+      <div class="afield"><label>Administración</label><textarea id="af-administracion"></textarea></div>
+      <div class="afield"><label>Preparación / Reconstitución</label><textarea id="af-preparacion"></textarea></div>
       <div class="afield"><label>Ajuste Renal</label><textarea id="af-renal"></textarea></div>
+      <div class="afield"><label>Ajuste Hepático</label><textarea id="af-hepatico"></textarea></div>
       <div class="afield"><label>Ajuste en Obesos</label><input type="text" id="af-obesos"></div>
       <div class="afield"><label>Embarazo</label><input type="text" id="af-embarazo"></div>
       <div class="afield"><label>Lactancia</label><input type="text" id="af-lactancia"></div>
@@ -426,35 +400,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 <!-- MODAL ADMIN ESTABILIDADES -->
 <div id="estab-admin-panel">
   <div class="admin-modal">
-    <div class="admin-hdr">
-      <h2>🧪 Administrar Estabilidades</h2>
-      <button class="admin-close" onclick="closeEstabAdmin()">×</button>
-    </div>
+    <div class="admin-hdr"><h2>🧪 Administrar Estabilidades</h2><button class="admin-close" onclick="closeEstabAdmin()">×</button></div>
     <div class="admin-body">
-      <select id="admin-estab-select" class="admin-select" onchange="loadEstabAdminData(this.value)">
-        <option value="">-- Crear Nueva --</option>
-      </select>
+      <select id="admin-estab-select" class="admin-select" onchange="loadEstabAdminData(this.value)"><option value="">-- Crear Nueva --</option></select>
       <div id="admin-estab-notice" class="admin-notice">¡Guardado con éxito!</div>
-      
-      <div class="afield"><label>Nombre (ID)</label><input type="text" id="ea-name"></div>
-      <div class="afield"><label>Tipo</label>
-        <select id="ea-tipo" class="admin-select">
-          <option value="QMT">QMT</option>
-          <option value="NO_QMT">No QMT</option>
-        </select>
-      </div>
-      <div class="afield"><label>Presentación</label><input type="text" id="ea-presentacion"></div>
-      <div class="afield"><label>Vehículo de dilución</label><input type="text" id="ea-vehiculo"></div>
-      <div class="afield"><label>Estabilidad diluido Ambiente</label><input type="text" id="ea-amb"></div>
-      <div class="afield"><label>Estabilidad diluido Refrigerado</label><input type="text" id="ea-ref"></div>
-      <div class="afield"><label>Tiempo de infusión</label><input type="text" id="ea-inf"></div>
+      <div class="afield"><label>Nombre</label><input id="ea-name"></div>
+      <div class="afield"><label>Tipo</label><select id="ea-tipo" class="admin-select"><option value="QMT">QMT</option><option value="NO_QMT">No QMT</option></select></div>
+      <div class="afield"><label>Presentación</label><input id="ea-presentacion"></div>
+      <div class="afield"><label>Vehículo</label><input id="ea-vehiculo"></div>
+      <div class="afield"><label>Estab. Amb</label><input id="ea-amb"></div>
+      <div class="afield"><label>Estab. Ref</label><input id="ea-ref"></div>
+      <div class="afield"><label>Infusión</label><input id="ea-inf"></div>
       <div class="afield"><label>Observaciones</label><textarea id="ea-obs" rows="3"></textarea></div>
-      <div class="afield"><label>Fuente</label><textarea id="ea-fuente" rows="2" placeholder="Referencia bibliográfica"></textarea></div>
+      <div class="afield"><label>Fuente</label><textarea id="ea-fuente" rows="2"></textarea></div>
     </div>
     <div class="admin-ftr">
       <button class="asbtn asbtn-del" id="delEstabBtn" onclick="deleteEstabilidad()" style="display:none">Eliminar</button>
       <button class="asbtn asbtn-cancel" onclick="closeEstabAdmin()">Cancelar</button>
-      <button class="asbtn asbtn-save" onclick="saveEstabilidad()">Guardar en la Nube</button>
+      <button class="asbtn asbtn-save" onclick="saveEstabilidad()">Guardar</button>
     </div>
   </div>
 </div>
@@ -464,4 +427,4 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
 </body>
-</html>
+              </html>
