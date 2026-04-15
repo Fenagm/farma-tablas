@@ -129,12 +129,23 @@ function filterList() {
   
   Object.keys(ABX).sort().forEach(name => {
     const d = ABX[name];
+    // Buscar en múltiples claves posibles
     const searchableText = [
-      name, d.familia, d.dosificacion, d.ajuste_renal, d.ajuste_obesos,
-      d.embarazo, d.lactancia, d.observaciones, d.interacciones,
-      d.farmacocinetica, d.contenido_completo, d.mecanismo_accion,
-      d.administracion, d.preparacion, d.ajuste_hepatico
+      name,
+      d.familia,
+      d.dosificacion || d.dosis,
+      d.mecanismo_accion || d.mecanismo,
+      d.administracion,
+      d.ajuste_renal,
+      d.ajuste_obesos,
+      d.embarazo,
+      d.lactancia,
+      d.observaciones,
+      d.interacciones,
+      d.farmacocinetica,
+      d.contenido_completo
     ].filter(Boolean).join(' ').toLowerCase();
+    
     if (searchableText.includes(q) && (activeFam ? d.familia === activeFam : true)) {
       count++;
       list.innerHTML += `<div class="abx-item" onclick="renderDetail('${name}')"><div class="aname">${name}</div><div class="atag">${d.familia || ''}</div></div>`;
@@ -142,16 +153,34 @@ function filterList() {
   });
   metaDiv.innerHTML = `<span>${count} antibiótico${count !== 1 ? 's' : ''}</span>`;
 }
-
 function renderDetail(name) {
   const d = ABX[name];
   if (!d) return;
   selName = name;
   
-  // Buscar mecanismo en diferentes posibles claves
-  const mecanismo = d.mecanismo_accion || d.mecanismo || d.mecanismo_de_accion || '—';
+  // Función helper para obtener valor de múltiples claves posibles
+  function getValue(keys, defaultValue = '—') {
+    for (let key of keys) {
+      if (d[key] && d[key].toString().trim()) return d[key];
+    }
+    return defaultValue;
+  }
   
-  const extraHTML = d.contenido_completo ? `<div class="section-divider"><span>Monografía</span></div><div class="card"><div class="card-ttl">Contenido Completo</div><div class="body-txt">${d.contenido_completo}</div></div>` : '';
+  const mecanismo = getValue(['mecanismo_accion', 'mecanismo', 'mecanismo_de_accion']);
+  const dosificacion = getValue(['dosificacion', 'dosis']);
+  const administracion = getValue(['administracion', 'admin', 'via_administracion']);
+  const preparacion = getValue(['preparacion', 'reconstitucion', 'preparación']);
+  const ajuste_renal = getValue(['ajuste_renal', 'renal_ajuste', 'ajuste_renal_raw']);
+  const ajuste_hepatico = getValue(['ajuste_hepatico', 'hepatico_ajuste']);
+  const ajuste_obesos = getValue(['ajuste_obesos', 'obesos_ajuste']);
+  const embarazo = getValue(['embarazo', 'categoria_embarazo']);
+  const lactancia = getValue(['lactancia']);
+  const observaciones = getValue(['observaciones', 'obs']);
+  const interacciones = getValue(['interacciones', 'interacciones_raw']);
+  const farmacocinetica = getValue(['farmacocinetica', 'pk', 'farmacocinética']);
+  const contenido_completo = getValue(['contenido_completo', 'contenido_extra', 'monografia']);
+  
+  const extraHTML = contenido_completo !== '—' ? `<div class="section-divider"><span>Monografía</span></div><div class="card"><div class="card-ttl">Contenido Completo</div><div class="body-txt">${contenido_completo}</div></div>` : '';
   
   document.getElementById('main').innerHTML = `
     <div class="detail">
@@ -171,9 +200,9 @@ function renderDetail(name) {
       <div class="dtab-panel on" id="dt-general">
         <div class="cards-grid two-col">
           <div class="card"><div class="card-ttl">Mecanismo de acción</div><div class="body-txt">${mecanismo}</div></div>
-          <div class="card"><div class="card-ttl">Dosificación</div><div class="body-txt">${d.dosificacion || '—'}</div></div>
-          <div class="card"><div class="card-ttl">Administración</div><div class="body-txt">${d.administracion || '—'}</div></div>
-          <div class="card"><div class="card-ttl">Preparación / Reconstitución</div><div class="body-txt">${d.preparacion || '—'}</div></div>
+          <div class="card"><div class="card-ttl">Dosificación</div><div class="body-txt">${dosificacion}</div></div>
+          <div class="card"><div class="card-ttl">Administración</div><div class="body-txt">${administracion}</div></div>
+          <div class="card"><div class="card-ttl">Preparación / Reconstitución</div><div class="body-txt">${preparacion}</div></div>
         </div>
         ${extraHTML}
       </div>
@@ -181,25 +210,25 @@ function renderDetail(name) {
       <!-- Pestaña Ajustes -->
       <div class="dtab-panel" id="dt-ajustes">
         <div class="cards-grid two-col">
-          <div class="card"><div class="card-ttl">Ajuste Renal</div><div class="body-txt">${d.ajuste_renal || '—'}</div></div>
-          <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${d.ajuste_hepatico || '—'}</div></div>
-          <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${d.ajuste_obesos || '—'}</div></div>
+          <div class="card"><div class="card-ttl">Ajuste Renal</div><div class="body-txt">${ajuste_renal}</div></div>
+          <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${ajuste_hepatico}</div></div>
+          <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${ajuste_obesos}</div></div>
         </div>
       </div>
       
       <!-- Pestaña Seguridad -->
       <div class="dtab-panel" id="dt-seguridad">
         <div class="cards-grid two-col">
-          <div class="card"><div class="card-ttl">Embarazo</div><div class="body-txt">${d.embarazo || '—'}</div></div>
-          <div class="card"><div class="card-ttl">Lactancia</div><div class="body-txt">${d.lactancia || '—'}</div></div>
-          <div class="card"><div class="card-ttl">Observaciones</div><div class="body-txt">${d.observaciones || '—'}</div></div>
-          <div class="card"><div class="card-ttl">Interacciones</div><div class="body-txt">${d.interacciones || '—'}</div></div>
+          <div class="card"><div class="card-ttl">Embarazo</div><div class="body-txt">${embarazo}</div></div>
+          <div class="card"><div class="card-ttl">Lactancia</div><div class="body-txt">${lactancia}</div></div>
+          <div class="card"><div class="card-ttl">Observaciones</div><div class="body-txt">${observaciones}</div></div>
+          <div class="card"><div class="card-ttl">Interacciones</div><div class="body-txt">${interacciones}</div></div>
         </div>
       </div>
       
       <!-- Pestaña Farmacocinética -->
       <div class="dtab-panel" id="dt-pk">
-        <div class="card"><div class="card-ttl">Farmacocinética</div><div class="body-txt">${d.farmacocinetica || '—'}</div></div>
+        <div class="card"><div class="card-ttl">Farmacocinética</div><div class="body-txt">${farmacocinetica}</div></div>
       </div>
       
       <!-- Pestaña Calcular -->
@@ -433,7 +462,9 @@ async function saveData() {
   const data = {
     familia: document.getElementById('af-fam').value || '',
     mecanismo_accion: document.getElementById('af-mecanismo').value || '',
+    mecanismo: document.getElementById('af-mecanismo').value || '',  // Guardar también como 'mecanismo'
     dosificacion: document.getElementById('af-dose').value || '',
+    dosis: document.getElementById('af-dose').value || '',  // Guardar también como 'dosis'
     administracion: document.getElementById('af-administracion').value || '',
     preparacion: document.getElementById('af-preparacion').value || '',
     ajuste_renal: document.getElementById('af-renal').value || '',
