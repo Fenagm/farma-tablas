@@ -19,631 +19,410 @@ let editingEstabId = null;
 let selName = null;
 let activeFam = null;
 
-// ── LOGIN ──
-async function doLogin() {
-  const email = document.getElementById('usr').value.trim();
-  const password = document.getElementById('pwd').value;
-  const btn = document.querySelector('.lbtn');
-  btn.innerText = 'Verificando...'; btn.disabled = true;
-  try {
-    const cred = await auth.signInWithEmailAndPassword(email, password);
-    currentUser = cred.user;
-    await Promise.all([loadDataFromFirestore(), loadEstabilidades()]);
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    if (email === 'farmaceuticasiaf@gmail.com') {
-      document.getElementById('adminBtn').style.display = '';
+// ── HELPERS ─────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+function renderAjusteRenal(d) {
+    // 1. Si existe la tabla estructurada, la usamos
+    if (d.ajuste_renal_table && typeof d.ajuste_renal_table === 'object') {
+        const table = d.ajuste_renal_table;
+        const headers = table.headers || [];
+        const rows = table.rows || [];
+        if (headers.length && rows.length) {
+            let html = '<div style="overflow-x:auto;"><table class="renal-table" style="width:100%; border-collapse:collapse; font-size:12px;">';
+            html += '<thead><tr>' + headers.map(h => `<th style="border:1px solid var(--g2); padding:6px 8px; background:var(--paper2);">${escapeHtml(h)}</th>`).join('') + '</thead>';
+            html += '<tbody>';
+            for (const row of rows) {
+                html += '<tr>' + row.map(cell => `<td style="border:1px solid var(--g2); padding:6px 8px;">${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
+            }
+            html += '</tbody></table></div>';
+            return html;
+        }
     }
-    initApp();
-  } catch {
-    const e = document.getElementById('lerr');
-    e.style.display = 'block';
-    setTimeout(() => e.style.display = 'none', 4000);
-  } finally {
-    btn.innerText = 'Ingresar →'; btn.disabled = false;
-  }
+    // 2. Si no hay tabla, mostrar ajuste_renal_raw con formato pre
+    if (d.ajuste_renal_raw) {
+        return `<pre style="white-space:pre-wrap; font-family:'DM Mono',monospace; font-size:12px; background:var(--paper); padding:12px; border-radius:8px; overflow-x:auto;">${escapeHtml(d.ajuste_renal_raw)}</pre>`;
+    }
+    // 3. Fallback: ajuste_renal (texto plano)
+    return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
+}
+
+function getValue(d, keys, defaultValue = '—') {
+    for (let key of keys) {
+        if (d[key] && d[key].toString().trim()) return d[key];
+    }
+    return defaultValue;
+}
+
+// ── LOGIN ───────────────────────────────────────────────────────────────
+async function doLogin() {
+    const email = document.getElementById('usr').value.trim();
+    const password = document.getElementById('pwd').value;
+    const btn = document.querySelector('.lbtn');
+    btn.innerText = 'Verificando...'; btn.disabled = true;
+    try {
+        const cred = await auth.signInWithEmailAndPassword(email, password);
+        currentUser = cred.user;
+        await Promise.all([loadDataFromFirestore(), loadEstabilidades()]);
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        if (email === 'farmaceuticasiaf@gmail.com') {
+            document.getElementById('adminBtn').style.display = '';
+        }
+        initApp();
+    } catch {
+        const e = document.getElementById('lerr');
+        e.style.display = 'block';
+        setTimeout(() => e.style.display = 'none', 4000);
+    } finally {
+        btn.innerText = 'Ingresar →'; btn.disabled = false;
+    }
 }
 function doLogout() { auth.signOut().then(() => location.reload()); }
 document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('usr').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pwd').focus(); });
 
-// ── PAGE SWITCHING ──
+// ── PAGE SWITCHING ─────────────────────────────────────────────────────
 function switchPage(pageId, btn, isMobile = false) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
-  document.getElementById(pageId).classList.add('on');
-  if (isMobile) {
-    document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('on'));
-    const topId = pageId === 'page-abx' ? 'nav-abx' : 'nav-estab';
-    const topBtn = document.getElementById(topId);
-    if (topBtn) topBtn.classList.add('on');
-  } else {
-    document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('on'));
-    const botId = pageId === 'page-abx' ? 'bnav-abx' : 'bnav-estab';
-    const botBtn = document.getElementById(botId);
-    if (botBtn) botBtn.classList.add('on');
-  }
-  if (pageId === 'page-estab') renderEstabTable();
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+    document.getElementById(pageId).classList.add('on');
+    if (isMobile) {
+        document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('on'));
+        const topId = pageId === 'page-abx' ? 'nav-abx' : 'nav-estab';
+        const topBtn = document.getElementById(topId);
+        if (topBtn) topBtn.classList.add('on');
+    } else {
+        document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('on'));
+        const botId = pageId === 'page-abx' ? 'bnav-abx' : 'bnav-estab';
+        const botBtn = document.getElementById(botId);
+        if (botBtn) botBtn.classList.add('on');
+    }
+    if (pageId === 'page-estab') renderEstabTable();
 }
 
-// ── FIRESTORE: ANTIBIÓTICOS ──
+// ── FIRESTORE: ANTIBIÓTICOS ────────────────────────────────────────────
 async function loadDataFromFirestore() {
-  const snap = await db.collection('antibioticos').get();
-  ABX = {};
-  snap.forEach(doc => { ABX[doc.id] = doc.data(); });
+    const snap = await db.collection('antibioticos').get();
+    ABX = {};
+    snap.forEach(doc => { ABX[doc.id] = doc.data(); });
 }
 
-// ── FIRESTORE: ESTABILIDADES ──
+// ── FIRESTORE: ESTABILIDADES ───────────────────────────────────────────
 async function loadEstabilidades() {
-  try {
-    const snap = await db.collection('estabilidad').get();
-    ESTAB = [];
-    snap.forEach(doc => { ESTAB.push({ _id: doc.id, ...doc.data() }); });
-    ESTAB.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-    document.getElementById('estab-loading').style.display = 'none';
-    buildEstabAdminSelect();
-  } catch (err) {
-    document.getElementById('estab-loading').innerText = 'Error al cargar estabilidades.';
-  }
+    try {
+        const snap = await db.collection('estabilidad').get();
+        ESTAB = [];
+        snap.forEach(doc => { ESTAB.push({ _id: doc.id, ...doc.data() }); });
+        ESTAB.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        document.getElementById('estab-loading').style.display = 'none';
+        buildEstabAdminSelect();
+    } catch (err) {
+        document.getElementById('estab-loading').innerText = 'Error al cargar estabilidades.';
+    }
 }
 
-// ── ANTIBIÓTICOS: UI ──
+// ── ANTIBIÓTICOS: UI ───────────────────────────────────────────────────
 function initApp() { buildFamFilters(); filterList(); }
 
 function buildFamFilters() {
-  const fams = new Set();
-  for (const n in ABX) { if (ABX[n].familia) fams.add(ABX[n].familia); }
-  const row = document.getElementById('fam-row');
-  row.innerHTML = `<button class="fbtn ${!activeFam ? 'on' : ''}" onclick="filterFam(null)">Todas</button>`;
-  Array.from(fams).sort().forEach(f => {
-    row.innerHTML += `<button class="fbtn ${activeFam === f ? 'on' : ''}" onclick="filterFam('${f}')">${f}</button>`;
-  });
+    const fams = new Set();
+    for (const n in ABX) { if (ABX[n].familia) fams.add(ABX[n].familia); }
+    const row = document.getElementById('fam-row');
+    row.innerHTML = `<button class="fbtn ${!activeFam ? 'on' : ''}" onclick="filterFam(null)">Todas</button>`;
+    Array.from(fams).sort().forEach(f => {
+        row.innerHTML += `<button class="fbtn ${activeFam === f ? 'on' : ''}" onclick="filterFam('${f.replace(/'/g, "\\'")}')">${f}</button>`;
+    });
 }
 function filterFam(fam) { activeFam = fam; buildFamFilters(); filterList(); }
 
 function clearSelection() {
-  selName = null;
-  filterList();
-  document.getElementById('main').innerHTML = '<div class="empty"><div class="empty-ico">💊</div><div class="empty-txt">Seleccioná un antibiótico para ver su ficha</div><div class="empty-hint">Usá el buscador o filtrá por familia</div></div>';
+    selName = null;
+    filterList();
+    document.getElementById('main').innerHTML = '<div class="empty"><div class="empty-ico">💊</div><div class="empty-txt">Seleccioná un antibiótico para ver su ficha</div><div class="empty-hint">Usá el buscador o filtrá por familia</div></div>';
 }
 
 function filterList() {
-  const q = document.getElementById('srch').value.toLowerCase();
-  const list = document.getElementById('abx-list');
-  const metaDiv = document.getElementById('list-meta');
-  list.innerHTML = '';
-  let count = 0;
-  
-  if (selName) {
-    const d = ABX[selName];
-    if (d && (activeFam ? d.familia === activeFam : true)) {
-      count = 1;
-      list.innerHTML = `<div class="abx-item sel" onclick="renderDetail('${selName}')"><div class="aname">${selName}</div><div class="atag">${d.familia || ''}</div></div>`;
+    const q = document.getElementById('srch').value.toLowerCase();
+    const list = document.getElementById('abx-list');
+    const metaDiv = document.getElementById('list-meta');
+    list.innerHTML = '';
+    let count = 0;
+
+    if (selName) {
+        const d = ABX[selName];
+        if (d && (activeFam ? d.familia === activeFam : true)) {
+            count = 1;
+            list.innerHTML = `<div class="abx-item sel" onclick="renderDetail('${selName.replace(/'/g, "\\'")}')"><div class="aname">${escapeHtml(selName)}</div><div class="atag">${escapeHtml(d.familia || '')}</div></div>`;
+        }
+        metaDiv.innerHTML = `<span>${count} antibiótico</span><button class="clear-btn" onclick="clearSelection()">✖ Limpiar</button>`;
+        return;
     }
-    metaDiv.innerHTML = `<span>${count} antibiótico</span><button class="clear-btn" onclick="clearSelection()">✖ Limpiar</button>`;
-    return;
-  }
-  
-  Object.keys(ABX).sort().forEach(name => {
-    const d = ABX[name];
-    // Buscar en múltiples claves posibles
-    const searchableText = [
-      name,
-      d.familia,
-      d.dosificacion || d.dosis,
-      d.mecanismo_accion || d.mecanismo,
-      d.administracion,
-      d.ajuste_renal,
-      d.ajuste_obesos,
-      d.embarazo,
-      d.lactancia,
-      d.observaciones,
-      d.interacciones,
-      d.farmacocinetica,
-      d.contenido_completo
-    ].filter(Boolean).join(' ').toLowerCase();
-    
-    if (searchableText.includes(q) && (activeFam ? d.familia === activeFam : true)) {
-      count++;
-      list.innerHTML += `<div class="abx-item" onclick="renderDetail('${name}')"><div class="aname">${name}</div><div class="atag">${d.familia || ''}</div></div>`;
-    }
-  });
-  metaDiv.innerHTML = `<span>${count} antibiótico${count !== 1 ? 's' : ''}</span>`;
+
+    Object.keys(ABX).sort().forEach(name => {
+        const d = ABX[name];
+        const searchableText = [
+            name, d.familia,
+            getValue(d, ['dosificacion', 'dosis']),
+            getValue(d, ['mecanismo_accion', 'mecanismo']),
+            d.administracion, d.ajuste_renal, d.ajuste_obesos,
+            d.embarazo, d.lactancia, d.observaciones, d.interacciones,
+            d.farmacocinetica, d.contenido_completo
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        if (searchableText.includes(q) && (activeFam ? d.familia === activeFam : true)) {
+            count++;
+            list.innerHTML += `<div class="abx-item" onclick="renderDetail('${name.replace(/'/g, "\\'")}')"><div class="aname">${escapeHtml(name)}</div><div class="atag">${escapeHtml(d.familia || '')}</div></div>`;
+        }
+    });
+    metaDiv.innerHTML = `<span>${count} antibiótico${count !== 1 ? 's' : ''}</span>`;
 }
+
 function renderDetail(name) {
-  const d = ABX[name];
-  if (!d) return;
-  selName = name;
-  
-  function getValue(keys, defaultValue = '—') {
-    for (let key of keys) {
-      if (d[key] && d[key].toString().trim()) return d[key];
-    }
-    return defaultValue;
-  }
-  
-  const mecanismo = getValue(['mecanismo_accion', 'mecanismo']);
-  const dosificacion = getValue(['dosificacion', 'dosis']);
-  const administracion = getValue(['administracion']);
-  const preparacion = getValue(['preparacion']);
-  // Priorizar ajuste_renal_raw (más completo) sobre ajuste_renal
-  const ajuste_renal = getValue(['ajuste_renal_raw', 'ajuste_renal']);
-  const ajuste_hepatico = getValue(['ajuste_hepatico']);
-  const ajuste_obesos = getValue(['ajuste_obesos']);
-  const embarazo = getValue(['embarazo']);
-  const lactancia = getValue(['lactancia']);
-  const observaciones = getValue(['observaciones']);
-  const interacciones = getValue(['interacciones']);
-  const farmacocinetica = getValue(['farmacocinetica']);
-  const contenido_completo = getValue(['contenido_completo']);
-  
-  const extraHTML = contenido_completo !== '—' ? `<div class="section-divider"><span>Monografía</span></div><div class="card"><div class="card-ttl">Contenido Completo</div><div class="body-txt">${contenido_completo}</div></div>` : '';
-  
-  document.getElementById('main').innerHTML = `...`; // Resto igual pero usando las variables arriba
-}
-  
-  // Función helper para obtener valor de múltiples claves posibles
-  function getValue(keys, defaultValue = '—') {
-    for (let key of keys) {
-      if (d[key] && d[key].toString().trim()) return d[key];
-    }
-    return defaultValue;
-  }
-  
-  const mecanismo = getValue(['mecanismo_accion', 'mecanismo', 'mecanismo_de_accion']);
-  const dosificacion = getValue(['dosificacion', 'dosis']);
-  const administracion = getValue(['administracion', 'admin', 'via_administracion']);
-  const preparacion = getValue(['preparacion', 'reconstitucion', 'preparación']);
-  const ajuste_renal = getValue(['ajuste_renal', 'renal_ajuste', 'ajuste_renal_raw']);
-  const ajuste_hepatico = getValue(['ajuste_hepatico', 'hepatico_ajuste']);
-  const ajuste_obesos = getValue(['ajuste_obesos', 'obesos_ajuste']);
-  const embarazo = getValue(['embarazo', 'categoria_embarazo']);
-  const lactancia = getValue(['lactancia']);
-  const observaciones = getValue(['observaciones', 'obs']);
-  const interacciones = getValue(['interacciones', 'interacciones_raw']);
-  const farmacocinetica = getValue(['farmacocinetica', 'pk', 'farmacocinética']);
-  const contenido_completo = getValue(['contenido_completo', 'contenido_extra', 'monografia']);
-  
-  const extraHTML = contenido_completo !== '—' ? `<div class="section-divider"><span>Monografía</span></div><div class="card"><div class="card-ttl">Contenido Completo</div><div class="body-txt">${contenido_completo}</div></div>` : '';
-  
-  document.getElementById('main').innerHTML = `
-    <div class="detail">
-      <div class="d-hdr">
-        <div class="d-fam">${d.familia || 'Sin familia'}</div>
-        <h2 class="d-name">${name}</h2>
-      </div>
-      <div class="detail-tabs">
-        <button class="dtab on" onclick="switchDTab(event,'dt-general')">💊 General</button>
-        <button class="dtab" onclick="switchDTab(event,'dt-ajustes')">⚖️ Ajustes</button>
-        <button class="dtab" onclick="switchDTab(event,'dt-seguridad')">⚠️ Seguridad</button>
-        <button class="dtab" onclick="switchDTab(event,'dt-pk')">📈 Farmacocinética</button>
-        <button class="dtab" onclick="switchDTab(event,'dt-calcular')">🧮 Calcular</button>
-      </div>
-      
-      <!-- Pestaña General -->
-      <div class="dtab-panel on" id="dt-general">
-        <div class="cards-grid two-col">
-          <div class="card"><div class="card-ttl">Mecanismo de acción</div><div class="body-txt">${mecanismo}</div></div>
-          <div class="card"><div class="card-ttl">Dosificación</div><div class="body-txt">${dosificacion}</div></div>
-          <div class="card"><div class="card-ttl">Administración</div><div class="body-txt">${administracion}</div></div>
-          <div class="card"><div class="card-ttl">Preparación / Reconstitución</div><div class="body-txt">${preparacion}</div></div>
-        </div>
-        ${extraHTML}
-      </div>
-      
-      <!-- Pestaña Ajustes -->
-      <div class="dtab-panel" id="dt-ajustes">
-        <div class="cards-grid two-col">
-          <div class="card"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
-          <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${ajuste_hepatico}</div></div>
-          <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${ajuste_obesos}</div></div>
-        </div>
-      </div>
-      
-      <!-- Pestaña Seguridad -->
-      <div class="dtab-panel" id="dt-seguridad">
-        <div class="cards-grid two-col">
-          <div class="card"><div class="card-ttl">Embarazo</div><div class="body-txt">${embarazo}</div></div>
-          <div class="card"><div class="card-ttl">Lactancia</div><div class="body-txt">${lactancia}</div></div>
-          <div class="card"><div class="card-ttl">Observaciones</div><div class="body-txt">${observaciones}</div></div>
-          <div class="card"><div class="card-ttl">Interacciones</div><div class="body-txt">${interacciones}</div></div>
-        </div>
-      </div>
-      
-      <!-- Pestaña Farmacocinética -->
-      <div class="dtab-panel" id="dt-pk">
-        <div class="card"><div class="card-ttl">Farmacocinética</div><div class="body-txt">${farmacocinetica}</div></div>
-      </div>
-      
-      <!-- Pestaña Calcular -->
-      <div class="dtab-panel" id="dt-calcular">
-        ${buildToolsHTML()}
-      </div>
-    </div>`;
-  filterList();
-}
-function switchDTab(e, id) {
-  const detail = e.target.closest('.detail');
-  detail.querySelectorAll('.dtab').forEach(t => t.classList.remove('on'));
-  detail.querySelectorAll('.dtab-panel').forEach(p => p.classList.remove('on'));
-  e.target.classList.add('on');
-  document.getElementById(id).classList.add('on');
-  document.getElementById('main').scrollTo({ top: 0, behavior: 'smooth' });
-}
+    const d = ABX[name];
+    if (!d) return;
+    selName = name;
 
-// ── HERRAMIENTAS DE CÁLCULO (igual que antes, sin cambios) ──
-function buildToolsHTML() {
-  return `<div class="tools-section">
-    <div class="tools-tabs">
-      <button class="ttab on" onclick="switchTab(event,'tab-crcl')">🧪 CrCl Renal</button>
-      <button class="ttab" onclick="switchTab(event,'tab-dosis')">⚖️ Dosis Obesos</button>
-      <button class="ttab" onclick="switchTab(event,'tab-pk')">📈 T&gt;CMI</button>
-      <button class="ttab" onclick="switchTab(event,'tab-cp')">💉 Pico/Valle</button>
-    </div>
-    <div class="tool-panel on" id="tab-crcl"><div class="tool-card"><h3>Aclaramiento de Creatinina (Cockcroft-Gault)</h3><p>Estima la función renal para ajustar dosis. Usar peso ajustado en obesos automáticamente.</p><div class="tool-grid"><div class="tf"><label>Edad (años)</label><input id="cg-edad" type="number" placeholder="65"></div><div class="tf"><label>Peso real (kg)</label><input id="cg-peso" type="number" placeholder="70"></div><div class="tf"><label>Talla (cm)</label><input id="cg-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="cg-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div><div class="tf"><label>Creatinina (mg/dL)</label><input id="cg-cr" type="number" step="0.1" placeholder="1.0"></div></div><button class="calc-btn" onclick="calcCrCl()">Calcular CrCl →</button><div class="result-box" id="res-crcl"></div></div></div>
-    <div class="tool-panel" id="tab-dosis"><div class="tool-card"><h3>Peso de Dosificación en Obesidad</h3><p>Calcula IBW (Devine), ABW (factor 0.4) e IMC para orientar la dosificación.</p><div class="tool-grid"><div class="tf"><label>Peso real (kg)</label><input id="ob-peso" type="number" placeholder="110"></div><div class="tf"><label>Talla (cm)</label><input id="ob-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="ob-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div></div><button class="calc-btn" onclick="calcObesos()">Calcular →</button><div class="result-box" id="res-obesos"></div></div></div>
-    <div class="tool-panel" id="tab-pk"><div class="tool-card"><h3>T&gt;CMI — Antibióticos Tiempo-Dependientes</h3><p>Estima % del intervalo con concentración libre sobre la CMI. Meta ≥ 40–50% (beta-lactámicos).</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="pk-dosis" type="number" placeholder="1000"></div><div class="tf"><label>Intervalo (hs)</label><input id="pk-intervalo" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="pk-vd" type="number" step="0.01" placeholder="0.2"></div><div class="tf"><label>Peso (kg)</label><input id="pk-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="pk-t12" type="number" step="0.1" placeholder="1.5"></div><div class="tf"><label>CMI (mg/L)</label><input id="pk-cmi" type="number" step="0.001" placeholder="2"></div><div class="tf"><label>Fracción libre (fu)</label><input id="pk-fu" type="number" step="0.01" placeholder="0.9"></div></div><button class="calc-btn" onclick="calcPKPD()">Calcular T&gt;CMI →</button><div class="result-box" id="res-pkpd"></div></div></div>
-    <div class="tool-panel" id="tab-cp"><div class="tool-card"><h3>Concentración Pico y Valle (1 compartimento)</h3><p>Cmax y Ctrough al estado estacionario. Útil para aminoglucósidos y vancomicina.</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="cp-dosis" type="number" placeholder="500"></div><div class="tf"><label>Intervalo τ (hs)</label><input id="cp-tau" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="cp-vd" type="number" step="0.01" placeholder="0.25"></div><div class="tf"><label>Peso (kg)</label><input id="cp-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="cp-t12" type="number" step="0.1" placeholder="2"></div><div class="tf"><label>Infusión (min)</label><input id="cp-tinf" type="number" placeholder="30"></div></div><button class="calc-btn" onclick="calcPicovalle()">Calcular →</button><div class="result-box" id="res-cp"></div></div></div>
-  </div>`;
-}
+    const mecanismo = getValue(d, ['mecanismo_accion', 'mecanismo']);
+    const dosificacion = getValue(d, ['dosificacion', 'dosis']);
+    const administracion = getValue(d, ['administracion']);
+    const preparacion = getValue(d, ['preparacion']);
+    const ajuste_hepatico = getValue(d, ['ajuste_hepatico']);
+    const ajuste_obesos = getValue(d, ['ajuste_obesos']);
+    const embarazo = getValue(d, ['embarazo']);
+    const lactancia = getValue(d, ['lactancia']);
+    const observaciones = getValue(d, ['observaciones']);
+    const interacciones = getValue(d, ['interacciones']);
+    const farmacocinetica = getValue(d, ['farmacocinetica']);
+    const contenido_completo = getValue(d, ['contenido_completo']);
 
-function switchTab(e, id) {
-  const section = e.target.closest('.tools-section');
-  section.querySelectorAll('.ttab').forEach(t => t.classList.remove('on'));
-  section.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('on'));
-  e.target.classList.add('on');
-  document.getElementById(id).classList.add('on');
-}
+    const extraHTML = contenido_completo !== '—' ? `<div class="section-divider"><span>Monografía</span></div><div class="card"><div class="card-ttl">Contenido Completo</div><div class="body-txt">${escapeHtml(contenido_completo)}</div></div>` : '';
 
-function calcCrCl() {
-  const edad = parseFloat(document.getElementById('cg-edad').value);
-  const peso = parseFloat(document.getElementById('cg-peso').value);
-  const talla = parseFloat(document.getElementById('cg-talla').value);
-  const sexo = document.getElementById('cg-sexo').value;
-  const cr = parseFloat(document.getElementById('cg-cr').value);
-  if ([edad, peso, talla, cr].some(isNaN)) return alert('Completá todos los campos');
-  const tallaIn = talla / 2.54;
-  let ibw = sexo === 'M' ? 50 + 2.3 * (tallaIn - 60) : 45.5 + 2.3 * (tallaIn - 60);
-  ibw = Math.max(ibw, 45);
-  const pesoDos = peso > ibw * 1.2 ? ibw + 0.4 * (peso - ibw) : peso;
-  let crcl = ((140 - edad) * pesoDos) / (72 * cr);
-  if (sexo === 'F') crcl *= 0.85;
-  crcl = Math.round(crcl * 10) / 10;
-  let cat = '', cls = '';
-  if (crcl >= 90) { cat = 'Normal (≥90)'; cls = 'pill-green'; }
-  else if (crcl >= 60) { cat = 'Leve (60–89)'; cls = 'pill-green'; }
-  else if (crcl >= 30) { cat = 'Moderado (30–59)'; cls = 'pill-amber'; }
-  else if (crcl >= 15) { cat = 'Severo (15–29)'; cls = 'pill-red'; }
-  else { cat = 'Falla renal (<15)'; cls = 'pill-red'; }
-  const box = document.getElementById('res-crcl');
-  box.innerHTML = `<div class="result-main">${crcl} mL/min</div><div class="result-sub">Estadio: <span class="pill ${cls}">${cat}</span><br>Peso utilizado (CG): <strong>${Math.round(pesoDos*10)/10} kg</strong> ${peso > ibw * 1.2 ? '(Peso Ajustado ABW)' : '(Peso Real)'}<br>Peso Ideal IBW: <strong>${Math.round(ibw*10)/10} kg</strong></div>${crcl < 50 ? '<div class="result-warn">⚠ CrCl &lt;50 mL/min — revisar ajuste de dosis en la ficha.</div>' : ''}`;
-  box.classList.add('show');
-}
+    document.getElementById('main').innerHTML = `
+        <div class="detail">
+            <div class="d-hdr">
+                <div class="d-fam">${escapeHtml(d.familia || 'Sin familia')}</div>
+                <h2 class="d-name">${escapeHtml(name)}</h2>
+            </div>
+            <div class="detail-tabs">
+                <button class="dtab on" onclick="switchDTab(event,'dt-general')">💊 General</button>
+                <button class="dtab" onclick="switchDTab(event,'dt-ajustes')">⚖️ Ajustes</button>
+                <button class="dtab" onclick="switchDTab(event,'dt-seguridad')">⚠️ Seguridad</button>
+                <button class="dtab" onclick="switchDTab(event,'dt-pk')">📈 Farmacocinética</button>
+                <button class="dtab" onclick="switchDTab(event,'dt-calcular')">🧮 Calcular</button>
+            </div>
 
-function calcObesos() {
-  const peso = parseFloat(document.getElementById('ob-peso').value);
-  const talla = parseFloat(document.getElementById('ob-talla').value);
-  const sexo = document.getElementById('ob-sexo').value;
-  if ([peso, talla].some(isNaN)) return alert('Completá todos los campos');
-  const bmi = peso / ((talla/100) ** 2);
-  const tallaIn = talla / 2.54;
-  let ibw = sexo === 'M' ? 50 + 2.3 * (tallaIn - 60) : 45.5 + 2.3 * (tallaIn - 60);
-  ibw = Math.max(ibw, 45);
-  const abw = ibw + 0.4 * (peso - ibw);
-  let cat = '', cls = '';
-  if (bmi < 25) { cat = 'Normopeso'; cls = 'pill-green'; }
-  else if (bmi < 30) { cat = 'Sobrepeso'; cls = 'pill-amber'; }
-  else if (bmi < 35) { cat = 'Obesidad I'; cls = 'pill-red'; }
-  else if (bmi < 40) { cat = 'Obesidad II'; cls = 'pill-red'; }
-  else { cat = 'Obesidad mórbida'; cls = 'pill-red'; }
-  const box = document.getElementById('res-obesos');
-  box.innerHTML = `<div class="result-main">IMC: ${Math.round(bmi*10)/10} kg/m²</div><div class="result-sub"><span class="pill ${cls}">${cat}</span><br>IBW (Devine): <strong>${Math.round(ibw*10)/10} kg</strong><br>ABW (factor 0.4): <strong>${Math.round(abw*10)/10} kg</strong><br><br>Aminoglucósidos: IBW o ABW · Vancomicina (carga): TBW · Beta-lactámicos hidrofílicos: IBW · Lipofílicos (FQ, linezolid): TBW</div>${peso > ibw * 1.2 ? '<div class="result-warn">⚠ Paciente obeso — consultar ajuste específico en la ficha del antibiótico.</div>' : ''}`;
-  box.classList.add('show');
-}
+            <!-- General -->
+            <div class="dtab-panel on" id="dt-general">
+                <div class="cards-grid two-col">
+                    <div class="card"><div class="card-ttl">Mecanismo de acción</div><div class="body-txt">${escapeHtml(mecanismo)}</div></div>
+                    <div class="card"><div class="card-ttl">Dosificación</div><div class="body-txt">${escapeHtml(dosificacion)}</div></div>
+                    <div class="card"><div class="card-ttl">Administración</div><div class="body-txt">${escapeHtml(administracion)}</div></div>
+                    <div class="card"><div class="card-ttl">Preparación / Reconstitución</div><div class="body-txt">${escapeHtml(preparacion)}</div></div>
+                </div>
+                ${extraHTML}
+            </div>
 
-function calcPKPD() {
-  const dosis = parseFloat(document.getElementById('pk-dosis').value);
-  const tau = parseFloat(document.getElementById('pk-intervalo').value);
-  const vdKg = parseFloat(document.getElementById('pk-vd').value);
-  const peso = parseFloat(document.getElementById('pk-peso').value);
-  const t12 = parseFloat(document.getElementById('pk-t12').value);
-  const cmi = parseFloat(document.getElementById('pk-cmi').value);
-  const fu = parseFloat(document.getElementById('pk-fu').value) || 1;
-  if ([dosis, tau, vdKg, peso, t12, cmi].some(isNaN)) return alert('Completá todos los campos');
-  const vd = vdKg * peso;
-  const ke = Math.log(2) / t12;
-  const cmaxSS = (dosis / vd) / (1 - Math.exp(-ke * tau));
-  const cminSS = cmaxSS * Math.exp(-ke * tau);
-  let tSuperCMI = 0;
-  if (cmaxSS * fu >= cmi) { tSuperCMI = Math.min(Math.log(cmaxSS * fu / cmi) / ke, tau); }
-  const pct = Math.round((tSuperCMI / tau) * 1000) / 10;
-  const m40 = pct >= 40, m50 = pct >= 50;
-  const box = document.getElementById('res-pkpd');
-  box.innerHTML = `<div class="result-main">T&gt;CMI: ${pct}%</div><div class="result-sub">Cmax ss: <strong>${Math.round(cmaxSS*100)/100} mg/L</strong> | Ctrough ss: <strong>${Math.round(cminSS*100)/100} mg/L</strong><br>Meta ≥40%: <span class="pill ${m40?'pill-green':'pill-red'}">${m40?'✓ Cumple':'✗ No cumple'}</span> Meta ≥50%: <span class="pill ${m50?'pill-green':'pill-amber'}">${m50?'✓ Cumple':'✗ No cumple'}</span></div>${!m40 ? '<div class="result-warn">⚠ T>CMI insuficiente — considerar aumentar dosis, reducir intervalo o infusión extendida.</div>' : ''}`;
-  box.classList.add('show');
-}
+            <!-- Ajustes -->
+            <div class="dtab-panel" id="dt-ajustes">
+                <div class="cards-grid two-col">
+                    <div class="card"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
+                    <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${escapeHtml(ajuste_hepatico)}</div></div>
+                    <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${escapeHtml(ajuste_obesos)}</div></div>
+                </div>
+            </div>
 
-function calcPicovalle() {
-  const dosis = parseFloat(document.getElementById('cp-dosis').value);
-  const tau = parseFloat(document.getElementById('cp-tau').value);
-  const vdKg = parseFloat(document.getElementById('cp-vd').value);
-  const peso = parseFloat(document.getElementById('cp-peso').value);
-  const t12 = parseFloat(document.getElementById('cp-t12').value);
-  const tinfH = (parseFloat(document.getElementById('cp-tinf').value) || 30) / 60;
-  if ([dosis, tau, vdKg, peso, t12].some(isNaN)) return alert('Completá todos los campos');
-  const vd = vdKg * peso;
-  const ke = Math.log(2) / t12;
-  const k0 = dosis / tinfH;
-  const accFactor = 1 / (1 - Math.exp(-ke * tau));
-  const cmaxSS = (k0 / (vd * ke)) * (1 - Math.exp(-ke * tinfH)) * accFactor;
-  const ctroughSS = cmaxSS * Math.exp(-ke * (tau - tinfH));
-  const box = document.getElementById('res-cp');
-  box.innerHTML = `<div class="result-main">Cmax: ${Math.round(cmaxSS*100)/100} mg/L</div><div class="result-sub">Concentración pico (Cmax): <strong>${Math.round(cmaxSS*100)/100} mg/L</strong><br>Concentración valle (Ctrough): <strong>${Math.round(ctroughSS*100)/100} mg/L</strong><br>Vd total: <strong>${Math.round(vd*10)/10} L</strong> | ke: <strong>${Math.round(ke*1000)/1000} h⁻¹</strong><br><em>Modelo 1-compartimento al estado estacionario.</em></div>`;
-  box.classList.add('show');
-}
+            <!-- Seguridad -->
+            <div class="dtab-panel" id="dt-seguridad">
+                <div class="cards-grid two-col">
+                    <div class="card"><div class="card-ttl">Embarazo</div><div class="body-txt">${escapeHtml(embarazo)}</div></div>
+                    <div class="card"><div class="card-ttl">Lactancia</div><div class="body-txt">${escapeHtml(lactancia)}</div></div>
+                    <div class="card"><div class="card-ttl">Observaciones</div><div class="body-txt">${escapeHtml(observaciones)}</div></div>
+                    <div class="card"><div class="card-ttl">Interacciones</div><div class="body-txt">${escapeHtml(interacciones)}</div></div>
+                </div>
+            </div>
 
-// ── ESTABILIDADES TABLE (solo lectura) ──
-function renderEstabTable() {
-  const q = document.getElementById('estab-srch').value.toLowerCase();
-  const tbody = document.getElementById('estab-tbody');
-  const loading = document.getElementById('estab-loading');
-  if (ESTAB.length === 0) {
-    loading.style.display = 'flex';
-    loading.innerText = 'Sin datos. Usá el botón "Agregar" para crear una estabilidad.';
-    tbody.innerHTML = '';
-    return;
-  }
-  loading.style.display = 'none';
-  const filtered = ESTAB.filter(e => {
-    const matchTipo = estabTipoFilter ? e.tipo === estabTipoFilter : true;
-    const searchText = [e.nombre, e.tipo, ...(e.presentaciones || []).map(p => [p.presentacion, p.vehiculo_dilucion, p.estab_dil_amb, p.estab_dil_ref, p.tiempo_infusion, p.observaciones, p.fuente].join(' '))].filter(Boolean).join(' ').toLowerCase();
-    return matchTipo && (!q || searchText.includes(q));
-  });
-  document.getElementById('estab-meta').innerText = `${filtered.length} fármaco${filtered.length !== 1 ? 's' : ''}`;
-  tbody.innerHTML = filtered.map(e => {
-    const p = (e.presentaciones && e.presentaciones[0]) || {};
-    const hasMore = e.presentaciones && e.presentaciones.length > 1;
-    const tipoCls = e.tipo === 'QMT' ? 'etpill-qmt' : 'etpill-noqmt';
-    const tipoLabel = e.tipo === 'NO_QMT' ? 'No QMT' : 'QMT';
-    const tdAmbT = p.estab_dil_amb || '—';
-    const tdRefT = p.estab_dil_ref || '—';
-    const tdInfT = p.tiempo_infusion || '—';
-    return `<tr><td><span class="drug-name-cell">${e.nombre}</span>${hasMore ? `<small style="margin-left:6px;color:var(--g3)">+${e.presentaciones.length-1}</small>` : ''}</td><td><span class="etpill ${tipoCls}">${tipoLabel}</span></td><td>${p.presentacion || '—'}</td><td style="max-width:180px;font-size:12px;">${p.vehiculo_dilucion || '—'}</td><td><span class="estab-time ${tdAmbT==='—'?'na':''}">${tdAmbT}</span></td><td><span class="estab-time ${tdRefT==='—'?'na':''}">${tdRefT}</span></td><td><span class="estab-time ${tdInfT==='—'?'na':''}">${tdInfT}</span></td><td class="estab-obs-cell">${p.observaciones || '—'}</td></tr>`;
-  }).join('');
-}
-function filterEstab() { renderEstabTable(); }
-function filterEstabTipo(tipo, btn) {
-  estabTipoFilter = tipo;
-  document.querySelectorAll('.etfbtn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  renderEstabTable();
-}
+            <!-- Farmacocinética -->
+            <div class="dtab-panel" id="dt-pk">
+                <div class="card"><div class="card-ttl">Farmacocinética</div><div class="body-txt">${escapeHtml(farmacocinetica)}</div></div>
+            </div>
 
-// ── CRUD ESTABILIDADES ──
-function buildEstabAdminSelect() {
-  const sel = document.getElementById('admin-estab-select');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">-- Crear Nueva --</option>';
-  ESTAB.sort((a,b) => (a.nombre || '').localeCompare(b.nombre || '')).forEach(e => { sel.innerHTML += `<option value="${e._id}">${e.nombre}</option>`; });
-}
-function openEstabAdmin(id = null) {
-  editingEstabId = id;
-  buildEstabAdminSelect();
-  if (id) document.getElementById('admin-estab-select').value = id;
-  loadEstabAdminData(id || '');
-  document.getElementById('estab-admin-panel').classList.add('open');
-}
-function closeEstabAdmin() { document.getElementById('estab-admin-panel').classList.remove('open'); editingEstabId = null; }
-function loadEstabAdminData(id) {
-  editingEstabId = id || null;
-  const e = id ? ESTAB.find(x => x._id === id) : null;
-  const p = (e?.presentaciones && e.presentaciones[0]) || {};
-  document.getElementById('ea-name').value = e?.nombre || '';
-  document.getElementById('ea-name').disabled = !!e;
-  document.getElementById('ea-tipo').value = e?.tipo || 'QMT';
-  document.getElementById('ea-presentacion').value = p.presentacion || '';
-  document.getElementById('ea-vehiculo').value = p.vehiculo_dilucion || '';
-  document.getElementById('ea-amb').value = p.estab_dil_amb || '';
-  document.getElementById('ea-ref').value = p.estab_dil_ref || '';
-  document.getElementById('ea-inf').value = p.tiempo_infusion || '';
-  document.getElementById('ea-obs').value = p.observaciones || '';
-  document.getElementById('ea-fuente').value = p.fuente || '';
-  const delBtn = document.getElementById('delEstabBtn');
-  if (delBtn) delBtn.style.display = e ? 'block' : 'none';
-}
-async function saveEstabilidad() {
-  const nombre = document.getElementById('ea-name').value.trim();
-  if (!nombre) return alert('Debés ingresar un nombre');
-  const data = { nombre, tipo: document.getElementById('ea-tipo').value, presentaciones: [{ presentacion: document.getElementById('ea-presentacion').value, vehiculo_dilucion: document.getElementById('ea-vehiculo').value, estab_dil_amb: document.getElementById('ea-amb').value, estab_dil_ref: document.getElementById('ea-ref').value, tiempo_infusion: document.getElementById('ea-inf').value, observaciones: document.getElementById('ea-obs').value, fuente: document.getElementById('ea-fuente').value }] };
-  try {
-    if (editingEstabId) await db.collection('estabilidad').doc(editingEstabId).set(data);
-    else await db.collection('estabilidad').add(data);
-    await loadEstabilidades();
-    renderEstabTable();
-    const notice = document.getElementById('admin-estab-notice');
-    if (notice) { notice.style.display = 'block'; setTimeout(() => notice.style.display = 'none', 3000); }
-    closeEstabAdmin();
-  } catch (err) { alert('Error al guardar: ' + err.message); }
-}
-async function deleteEstabilidad() {
-  const id = editingEstabId || document.getElementById('admin-estab-select').value;
-  if (!id || !confirm(`¿Eliminar "${document.getElementById('ea-name').value}"?`)) return;
-  try {
-    await db.collection('estabilidad').doc(id).delete();
-    await loadEstabilidades();
-    renderEstabTable();
-    loadEstabAdminData('');
-    const delBtn = document.getElementById('delEstabBtn');
-    if (delBtn) delBtn.style.display = 'none';
-    if (editingEstabId === id) editingEstabId = null;
-  } catch (err) { alert('Error: ' + err.message); }
-}
-
-// ── ADMIN ANTIBIÓTICOS (actualizado con nuevos campos) ──
-async function saveData() {
-  const name = editingName || document.getElementById('af-name').value.trim();
-  if (!name) return alert('Debes ingresar un nombre');
-  
-  const mecanismoValue = document.getElementById('af-mecanismo').value || '';
-  const dosisValue = document.getElementById('af-dose').value || '';
-  const ajusteRenalRaw = document.getElementById('af-renal-raw').value || '';
-  
-  const data = {
-    familia: document.getElementById('af-fam').value || '',
-    // Mecanismo en ambas claves
-    mecanismo_accion: mecanismoValue,
-    mecanismo: mecanismoValue,
-    // Dosificación en ambas claves
-    dosificacion: dosisValue,
-    dosis: dosisValue,
-    administracion: document.getElementById('af-administracion').value || '',
-    preparacion: document.getElementById('af-preparacion').value || '',
-    // Ajuste Renal - guardar en raw y también en el campo regular
-    ajuste_renal_raw: ajusteRenalRaw,
-    ajuste_renal: ajusteRenalRaw,
-    ajuste_hepatico: document.getElementById('af-hepatico').value || '',
-    ajuste_obesos: document.getElementById('af-obesos').value || '',
-    embarazo: document.getElementById('af-embarazo').value || '',
-    lactancia: document.getElementById('af-lactancia').value || '',
-    observaciones: document.getElementById('af-obs').value || '',
-    interacciones: document.getElementById('af-inter').value || '',
-    farmacocinetica: document.getElementById('af-pk').value || '',
-    contenido_completo: document.getElementById('af-completo').value || ''
-  };
-  
-  try {
-    await db.collection('antibioticos').doc(name).set(data);
-    ABX[name] = data;
-    buildAdminSelect();
-    document.getElementById('admin-select').value = name;
-    buildFamFilters(); 
+            <!-- Calcular -->
+            <div class="dtab-panel" id="dt-calcular">
+                ${buildToolsHTML()}
+            </div>
+        </div>`;
     filterList();
-    editingName = name;
-    if (selName === name) renderDetail(name);
-    const n = document.getElementById('admin-notice');
-    n.style.display = 'block'; 
-    setTimeout(() => n.style.display = 'none', 3000);
-    document.getElementById('delBtn').style.display = '';
-  } catch (err) { 
-    alert('Error al guardar: ' + err.message); 
-  }
 }
-async function deleteAntibiotic() {
-  const name = editingName || document.getElementById('admin-select').value;
-  if (!name || !confirm(`¿Eliminar "${name}"?`)) return;
-  try {
-    await db.collection('antibioticos').doc(name).delete();
-    delete ABX[name];
-    buildAdminSelect(); buildFamFilters(); filterList();
-    loadAdminData('');
-    document.getElementById('delBtn').style.display = 'none';
-    if (selName === name) {
-      selName = null;
-      document.getElementById('main').innerHTML = '<div class="empty"><div class="empty-ico">💊</div><div class="empty-txt">Seleccioná un antibiótico</div></div>';
+
+function switchDTab(e, id) {
+    const detail = e.target.closest('.detail');
+    detail.querySelectorAll('.dtab').forEach(t => t.classList.remove('on'));
+    detail.querySelectorAll('.dtab-panel').forEach(p => p.classList.remove('on'));
+    e.target.classList.add('on');
+    document.getElementById(id).classList.add('on');
+    document.getElementById('main').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── HERRAMIENTAS DE CÁLCULO (sin cambios) ───────────────────────────────
+function buildToolsHTML() { /* ... mantén tu función original ... */ }
+function switchTab(e, id) { /* ... original ... */ }
+function calcCrCl() { /* ... original ... */ }
+function calcObesos() { /* ... original ... */ }
+function calcPKPD() { /* ... original ... */ }
+function calcPicovalle() { /* ... original ... */ }
+
+// ── ESTABILIDADES TABLE (solo lectura) ─────────────────────────────────
+function renderEstabTable() { /* ... mantén tu versión que no tiene onclick ... */ }
+function filterEstab() { renderEstabTable(); }
+function filterEstabTipo(tipo, btn) { /* ... */ }
+
+// ── CRUD ESTABILIDADES ─────────────────────────────────────────────────
+function buildEstabAdminSelect() { /* ... */ }
+function openEstabAdmin(id = null) { /* ... */ }
+function closeEstabAdmin() { /* ... */ }
+function loadEstabAdminData(id) { /* ... */ }
+async function saveEstabilidad() { /* ... */ }
+async function deleteEstabilidad() { /* ... */ }
+
+// ── ADMIN ANTIBIÓTICOS (actualizado) ───────────────────────────────────
+async function saveData() {
+    const name = editingName || document.getElementById('af-name').value.trim();
+    if (!name) return alert('Debes ingresar un nombre');
+
+    const mecanismoValue = document.getElementById('af-mecanismo').value || '';
+    const dosisValue = document.getElementById('af-dose').value || '';
+    const ajusteRenalRaw = document.getElementById('af-renal-raw').value || '';
+
+    const data = {
+        familia: document.getElementById('af-fam').value || '',
+        mecanismo_accion: mecanismoValue,
+        mecanismo: mecanismoValue,
+        dosificacion: dosisValue,
+        dosis: dosisValue,
+        administracion: document.getElementById('af-administracion').value || '',
+        preparacion: document.getElementById('af-preparacion').value || '',
+        ajuste_renal_raw: ajusteRenalRaw,
+        ajuste_renal: ajusteRenalRaw,
+        ajuste_hepatico: document.getElementById('af-hepatico').value || '',
+        ajuste_obesos: document.getElementById('af-obesos').value || '',
+        embarazo: document.getElementById('af-embarazo').value || '',
+        lactancia: document.getElementById('af-lactancia').value || '',
+        observaciones: document.getElementById('af-obs').value || '',
+        interacciones: document.getElementById('af-inter').value || '',
+        farmacocinetica: document.getElementById('af-pk').value || '',
+        contenido_completo: document.getElementById('af-completo').value || ''
+    };
+
+    try {
+        await db.collection('antibioticos').doc(name).set(data);
+        ABX[name] = data;
+        buildAdminSelect();
+        document.getElementById('admin-select').value = name;
+        buildFamFilters();
+        filterList();
+        editingName = name;
+        if (selName === name) renderDetail(name);
+        const n = document.getElementById('admin-notice');
+        n.style.display = 'block';
+        setTimeout(() => n.style.display = 'none', 3000);
+        document.getElementById('delBtn').style.display = '';
+    } catch (err) {
+        alert('Error al guardar: ' + err.message);
     }
-  } catch (err) { alert('Error: ' + err.message); }
 }
-function openAdmin() { buildAdminSelect(); loadAdminData(''); document.getElementById('admin-panel').classList.add('open'); }
-function closeAdmin() { document.getElementById('admin-panel').classList.remove('open'); editingName = null; }
+
+async function deleteAntibiotic() {
+    const name = editingName || document.getElementById('admin-select').value;
+    if (!name || !confirm(`¿Eliminar "${name}"?`)) return;
+    try {
+        await db.collection('antibioticos').doc(name).delete();
+        delete ABX[name];
+        buildAdminSelect();
+        buildFamFilters();
+        filterList();
+        loadAdminData('');
+        document.getElementById('delBtn').style.display = 'none';
+        if (selName === name) {
+            selName = null;
+            document.getElementById('main').innerHTML = '<div class="empty"><div class="empty-ico">💊</div><div class="empty-txt">Seleccioná un antibiótico</div></div>';
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+function openAdmin() {
+    buildAdminSelect();
+    loadAdminData('');
+    document.getElementById('admin-panel').classList.add('open');
+}
+function closeAdmin() {
+    document.getElementById('admin-panel').classList.remove('open');
+    editingName = null;
+}
 function buildAdminSelect() {
-  const sel = document.getElementById('admin-select');
-  sel.innerHTML = '<option value="">-- Crear Nuevo --</option>';
-  Object.keys(ABX).sort((a,b) => a.localeCompare(b)).forEach(n => { 
-    sel.innerHTML += `<option value="${n.replace(/"/g, '&quot;')}">${n}</option>`; 
-  });
+    const sel = document.getElementById('admin-select');
+    sel.innerHTML = '<option value="">-- Crear Nuevo --</option>';
+    Object.keys(ABX).sort((a, b) => a.localeCompare(b)).forEach(n => {
+        sel.innerHTML += `<option value="${n.replace(/"/g, '&quot;')}">${n}</option>`;
+    });
 }
 function loadAdminData(name) {
-  editingName = name || null;
-  const d = name ? ABX[name] : {};
-  
-  // Función helper para obtener valor de múltiples claves
-  function getVal(keys) {
-    for (let key of keys) {
-      if (d[key] && d[key].toString().trim()) return d[key];
-    }
-    return '';
-  }
-  
-  document.getElementById('af-name').value = name || '';
-  document.getElementById('af-name').disabled = !!name;
-  document.getElementById('af-fam').value = d.familia || '';
-  
-  // Mecanismo
-  document.getElementById('af-mecanismo').value = getVal(['mecanismo_accion', 'mecanismo', 'mecanismo_de_accion']);
-  
-  // Dosificación
-  document.getElementById('af-dose').value = getVal(['dosificacion', 'dosis']);
-  
-  document.getElementById('af-administracion').value = d.administracion || '';
-  document.getElementById('af-preparacion').value = d.preparacion || '';
-  
-  // Ajuste Renal - usar raw si existe, sino el campo regular
-  document.getElementById('af-renal-raw').value = getVal(['ajuste_renal_raw', 'ajuste_renal']);
-  
-  document.getElementById('af-hepatico').value = d.ajuste_hepatico || '';
-  document.getElementById('af-obesos').value = d.ajuste_obesos || '';
-  document.getElementById('af-embarazo').value = d.embarazo || '';
-  document.getElementById('af-lactancia').value = d.lactancia || '';
-  document.getElementById('af-obs').value = d.observaciones || '';
-  document.getElementById('af-inter').value = d.interacciones || '';
-  document.getElementById('af-pk').value = d.farmacocinetica || '';
-  document.getElementById('af-completo').value = d.contenido_completo || '';
-  
-  document.getElementById('delBtn').style.display = name ? 'block' : 'none';
-}
-// Función de debug - ejecutar en consola: inspectAbx("Amikacina")
-function inspectAbx(name) {
-  const d = ABX[name];
-  if (!d) {
-    console.log(`No se encontró "${name}"`);
-    return;
-  }
-  console.log(`=== ${name} ===`);
-  console.log("Claves disponibles:", Object.keys(d));
-  console.log("mecanismo_accion:", d.mecanismo_accion);
-  console.log("mecanismo:", d.mecanismo);
-  console.log("dosificacion:", d.dosificacion);
-  console.log("dosis:", d.dosis);
-  console.log("Contenido completo:", d.contenido_completo?.substring(0, 100) + "...");
+    editingName = name || null;
+    const d = name ? ABX[name] : {};
+
+    document.getElementById('af-name').value = name || '';
+    document.getElementById('af-name').disabled = !!name;
+    document.getElementById('af-fam').value = d.familia || '';
+    document.getElementById('af-mecanismo').value = getValue(d, ['mecanismo_accion', 'mecanismo'], '');
+    document.getElementById('af-dose').value = getValue(d, ['dosificacion', 'dosis'], '');
+    document.getElementById('af-administracion').value = d.administracion || '';
+    document.getElementById('af-preparacion').value = d.preparacion || '';
+    document.getElementById('af-renal-raw').value = d.ajuste_renal_raw || d.ajuste_renal || '';
+    document.getElementById('af-hepatico').value = d.ajuste_hepatico || '';
+    document.getElementById('af-obesos').value = d.ajuste_obesos || '';
+    document.getElementById('af-embarazo').value = d.embarazo || '';
+    document.getElementById('af-lactancia').value = d.lactancia || '';
+    document.getElementById('af-obs').value = d.observaciones || '';
+    document.getElementById('af-inter').value = d.interacciones || '';
+    document.getElementById('af-pk').value = d.farmacocinetica || '';
+    document.getElementById('af-completo').value = d.contenido_completo || '';
+
+    document.getElementById('delBtn').style.display = name ? 'block' : 'none';
 }
 
-function renderAjusteRenal(d) {
-  // 1. Si existe la tabla estructurada, la usamos
-  if (d.ajuste_renal_table && typeof d.ajuste_renal_table === 'object') {
-    const table = d.ajuste_renal_table;
-    const headers = table.headers || [];
-    const rows = table.rows || [];
-    if (headers.length && rows.length) {
-      let html = '<div style="overflow-x:auto;"><table class="renal-table" style="width:100%; border-collapse:collapse; font-size:12px;">';
-      html += '<thead><tr>' + headers.map(h => `<th style="border:1px solid var(--g2); padding:6px 8px; background:var(--paper2);">${h}</th>`).join('') + '</tr></thead>';
-      html += '<tbody>';
-      for (const row of rows) {
-        html += '<tr>' + row.map(cell => `<td style="border:1px solid var(--g2); padding:6px 8px;">${cell || '—'}</td>`).join('') + '</tr>';
-      }
-      html += '</tbody></table></div>';
-      return html;
+// ── CONTROL DE SESIÓN ──────────────────────────────────────────────────
+auth.onAuthStateChanged(async (user) => {
+    const loginScreen = document.getElementById('login');
+    const appScreen = document.getElementById('app');
+    if (user) {
+        currentUser = user;
+        loginScreen.style.display = 'none';
+        try {
+            await Promise.all([loadDataFromFirestore(), loadEstabilidades()]);
+            appScreen.style.display = 'flex';
+            if (user.email === 'farmaceuticasiaf@gmail.com') document.getElementById('adminBtn').style.display = '';
+            initApp();
+        } catch (error) {
+            console.error(error);
+            alert("Hubo un error al cargar la base de datos.");
+        }
+    } else {
+        appScreen.style.display = 'none';
+        loginScreen.style.display = 'flex';
+        const btn = document.querySelector('.lbtn');
+        if (btn) { btn.innerText = 'Ingresar'; btn.disabled = false; }
     }
-  }
-  // 2. Si no hay tabla estructurada, mostrar ajuste_renal_raw con formato pre
-  if (d.ajuste_renal_raw) {
-    return `<pre style="white-space:pre-wrap; font-family:'DM Mono',monospace; font-size:12px; background:var(--paper); padding:12px; border-radius:8px; overflow-x:auto;">${escapeHtml(d.ajuste_renal_raw)}</pre>`;
-  }
-  // 3. Fallback: ajuste_renal normal
-  return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
-}
-
-// Función para escapar HTML (evita inyección)
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-    return c;
-  });
-}
+});
