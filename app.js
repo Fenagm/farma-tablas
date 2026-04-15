@@ -581,3 +581,18 @@ auth.onAuthStateChanged(async (user) => {
     if (btn) { btn.innerText = 'Ingresar'; btn.disabled = false; }
   }
 });
+// Función de debug - ejecutar en consola: inspectAbx("Amikacina")
+function inspectAbx(name) {
+  const d = ABX[name];
+  if (!d) {
+    console.log(`No se encontró "${name}"`);
+    return;
+  }
+  console.log(`=== ${name} ===`);
+  console.log("Claves disponibles:", Object.keys(d));
+  console.log("mecanismo_accion:", d.mecanismo_accion);
+  console.log("mecanismo:", d.mecanismo);
+  console.log("dosificacion:", d.dosificacion);
+  console.log("dosis:", d.dosis);
+  console.log("Contenido completo:", d.contenido_completo?.substring(0, 100) + "...");
+}
