@@ -148,6 +148,9 @@ function renderDetail(name) {
   if (!d) return;
   selName = name;
   
+  // Buscar mecanismo en diferentes posibles claves
+  const mecanismo = d.mecanismo_accion || d.mecanismo || d.mecanismo_de_accion || '—';
+  
   const extraHTML = d.contenido_completo ? `<div class="section-divider"><span>Monografía</span></div><div class="card"><div class="card-ttl">Contenido Completo</div><div class="body-txt">${d.contenido_completo}</div></div>` : '';
   
   document.getElementById('main').innerHTML = `
@@ -167,7 +170,7 @@ function renderDetail(name) {
       <!-- Pestaña General -->
       <div class="dtab-panel on" id="dt-general">
         <div class="cards-grid two-col">
-          <div class="card"><div class="card-ttl">Mecanismo de acción</div><div class="body-txt">${d.mecanismo_accion || '—'}</div></div>
+          <div class="card"><div class="card-ttl">Mecanismo de acción</div><div class="body-txt">${mecanismo}</div></div>
           <div class="card"><div class="card-ttl">Dosificación</div><div class="body-txt">${d.dosificacion || '—'}</div></div>
           <div class="card"><div class="card-ttl">Administración</div><div class="body-txt">${d.administracion || '—'}</div></div>
           <div class="card"><div class="card-ttl">Preparación / Reconstitución</div><div class="body-txt">${d.preparacion || '—'}</div></div>
@@ -206,7 +209,6 @@ function renderDetail(name) {
     </div>`;
   filterList();
 }
-
 function switchDTab(e, id) {
   const detail = e.target.closest('.detail');
   detail.querySelectorAll('.dtab').forEach(t => t.classList.remove('on'));
