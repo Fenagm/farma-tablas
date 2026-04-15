@@ -237,7 +237,7 @@ function renderDetail(name) {
       <!-- Pestaña Ajustes -->
       <div class="dtab-panel" id="dt-ajustes">
         <div class="cards-grid two-col">
-          <div class="card"><div class="card-ttl">Ajuste Renal</div><div class="body-txt">${ajuste_renal}</div></div>
+          <div class="card"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
           <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${ajuste_hepatico}</div></div>
           <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${ajuste_obesos}</div></div>
         </div>
@@ -608,4 +608,42 @@ function inspectAbx(name) {
   console.log("dosificacion:", d.dosificacion);
   console.log("dosis:", d.dosis);
   console.log("Contenido completo:", d.contenido_completo?.substring(0, 100) + "...");
+}
+
+function renderAjusteRenal(d) {
+  // 1. Si existe la tabla estructurada, la usamos
+  if (d.ajuste_renal_table && typeof d.ajuste_renal_table === 'object') {
+    const table = d.ajuste_renal_table;
+    const headers = table.headers || [];
+    const rows = table.rows || [];
+    if (headers.length && rows.length) {
+      let html = '<div style="overflow-x:auto;"><table class="renal-table" style="width:100%; border-collapse:collapse; font-size:12px;">';
+      html += '<thead><tr>' + headers.map(h => `<th style="border:1px solid var(--g2); padding:6px 8px; background:var(--paper2);">${h}</th>`).join('') + '</tr></thead>';
+      html += '<tbody>';
+      for (const row of rows) {
+        html += '<tr>' + row.map(cell => `<td style="border:1px solid var(--g2); padding:6px 8px;">${cell || '—'}</td>`).join('') + '</tr>';
+      }
+      html += '</tbody></table></div>';
+      return html;
+    }
+  }
+  // 2. Si no hay tabla estructurada, mostrar ajuste_renal_raw con formato pre
+  if (d.ajuste_renal_raw) {
+    return `<pre style="white-space:pre-wrap; font-family:'DM Mono',monospace; font-size:12px; background:var(--paper); padding:12px; border-radius:8px; overflow-x:auto;">${escapeHtml(d.ajuste_renal_raw)}</pre>`;
+  }
+  // 3. Fallback: ajuste_renal normal
+  return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
+}
+
+// Función para escapar HTML (evita inyección)
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+    return c;
+  });
 }
