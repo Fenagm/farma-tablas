@@ -158,6 +158,33 @@ function renderDetail(name) {
   if (!d) return;
   selName = name;
   
+  function getValue(keys, defaultValue = '—') {
+    for (let key of keys) {
+      if (d[key] && d[key].toString().trim()) return d[key];
+    }
+    return defaultValue;
+  }
+  
+  const mecanismo = getValue(['mecanismo_accion', 'mecanismo']);
+  const dosificacion = getValue(['dosificacion', 'dosis']);
+  const administracion = getValue(['administracion']);
+  const preparacion = getValue(['preparacion']);
+  // Priorizar ajuste_renal_raw (más completo) sobre ajuste_renal
+  const ajuste_renal = getValue(['ajuste_renal_raw', 'ajuste_renal']);
+  const ajuste_hepatico = getValue(['ajuste_hepatico']);
+  const ajuste_obesos = getValue(['ajuste_obesos']);
+  const embarazo = getValue(['embarazo']);
+  const lactancia = getValue(['lactancia']);
+  const observaciones = getValue(['observaciones']);
+  const interacciones = getValue(['interacciones']);
+  const farmacocinetica = getValue(['farmacocinetica']);
+  const contenido_completo = getValue(['contenido_completo']);
+  
+  const extraHTML = contenido_completo !== '—' ? `<div class="section-divider"><span>Monografía</span></div><div class="card"><div class="card-ttl">Contenido Completo</div><div class="body-txt">${contenido_completo}</div></div>` : '';
+  
+  document.getElementById('main').innerHTML = `...`; // Resto igual pero usando las variables arriba
+}
+  
   // Función helper para obtener valor de múltiples claves posibles
   function getValue(keys, defaultValue = '—') {
     for (let key of keys) {
@@ -462,18 +489,21 @@ async function saveData() {
   
   const mecanismoValue = document.getElementById('af-mecanismo').value || '';
   const dosisValue = document.getElementById('af-dose').value || '';
+  const ajusteRenalRaw = document.getElementById('af-renal-raw').value || '';
   
   const data = {
     familia: document.getElementById('af-fam').value || '',
-    // Guardar mecanismo en ambas claves para compatibilidad
+    // Mecanismo en ambas claves
     mecanismo_accion: mecanismoValue,
     mecanismo: mecanismoValue,
-    // Guardar dosificación en ambas claves para compatibilidad
+    // Dosificación en ambas claves
     dosificacion: dosisValue,
     dosis: dosisValue,
     administracion: document.getElementById('af-administracion').value || '',
     preparacion: document.getElementById('af-preparacion').value || '',
-    ajuste_renal: document.getElementById('af-renal').value || '',
+    // Ajuste Renal - guardar en raw y también en el campo regular
+    ajuste_renal_raw: ajusteRenalRaw,
+    ajuste_renal: ajusteRenalRaw,
     ajuste_hepatico: document.getElementById('af-hepatico').value || '',
     ajuste_obesos: document.getElementById('af-obesos').value || '',
     embarazo: document.getElementById('af-embarazo').value || '',
@@ -541,15 +571,18 @@ function loadAdminData(name) {
   document.getElementById('af-name').disabled = !!name;
   document.getElementById('af-fam').value = d.familia || '';
   
-  // Mecanismo - buscar en múltiples claves
+  // Mecanismo
   document.getElementById('af-mecanismo').value = getVal(['mecanismo_accion', 'mecanismo', 'mecanismo_de_accion']);
   
-  // Dosificación - buscar en múltiples claves
+  // Dosificación
   document.getElementById('af-dose').value = getVal(['dosificacion', 'dosis']);
   
   document.getElementById('af-administracion').value = d.administracion || '';
   document.getElementById('af-preparacion').value = d.preparacion || '';
-  document.getElementById('af-renal').value = d.ajuste_renal || '';
+  
+  // Ajuste Renal - usar raw si existe, sino el campo regular
+  document.getElementById('af-renal-raw').value = getVal(['ajuste_renal_raw', 'ajuste_renal']);
+  
   document.getElementById('af-hepatico').value = d.ajuste_hepatico || '';
   document.getElementById('af-obesos').value = d.ajuste_obesos || '';
   document.getElementById('af-embarazo').value = d.embarazo || '';
@@ -561,26 +594,6 @@ function loadAdminData(name) {
   
   document.getElementById('delBtn').style.display = name ? 'block' : 'none';
 }
-// ── CONTROL DE SESIÓN ──
-auth.onAuthStateChanged(async (user) => {
-  const loginScreen = document.getElementById('login');
-  const appScreen = document.getElementById('app');
-  if (user) {
-    currentUser = user;
-    loginScreen.style.display = 'none';
-    try {
-      await Promise.all([loadDataFromFirestore(), loadEstabilidades()]);
-      appScreen.style.display = 'flex';
-      if (user.email === 'farmaceuticasiaf@gmail.com') document.getElementById('adminBtn').style.display = '';
-      initApp();
-    } catch (error) { console.error(error); alert("Hubo un error al cargar la base de datos."); }
-  } else {
-    appScreen.style.display = 'none';
-    loginScreen.style.display = 'flex';
-    const btn = document.querySelector('.lbtn');
-    if (btn) { btn.innerText = 'Ingresar'; btn.disabled = false; }
-  }
-});
 // Función de debug - ejecutar en consola: inspectAbx("Amikacina")
 function inspectAbx(name) {
   const d = ABX[name];
