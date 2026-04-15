@@ -459,12 +459,18 @@ async function deleteEstabilidad() {
 async function saveData() {
   const name = editingName || document.getElementById('af-name').value.trim();
   if (!name) return alert('Debes ingresar un nombre');
+  
+  const mecanismoValue = document.getElementById('af-mecanismo').value || '';
+  const dosisValue = document.getElementById('af-dose').value || '';
+  
   const data = {
     familia: document.getElementById('af-fam').value || '',
-    mecanismo_accion: document.getElementById('af-mecanismo').value || '',
-    mecanismo: document.getElementById('af-mecanismo').value || '',  // Guardar también como 'mecanismo'
-    dosificacion: document.getElementById('af-dose').value || '',
-    dosis: document.getElementById('af-dose').value || '',  // Guardar también como 'dosis'
+    // Guardar mecanismo en ambas claves para compatibilidad
+    mecanismo_accion: mecanismoValue,
+    mecanismo: mecanismoValue,
+    // Guardar dosificación en ambas claves para compatibilidad
+    dosificacion: dosisValue,
+    dosis: dosisValue,
     administracion: document.getElementById('af-administracion').value || '',
     preparacion: document.getElementById('af-preparacion').value || '',
     ajuste_renal: document.getElementById('af-renal').value || '',
@@ -477,18 +483,23 @@ async function saveData() {
     farmacocinetica: document.getElementById('af-pk').value || '',
     contenido_completo: document.getElementById('af-completo').value || ''
   };
+  
   try {
     await db.collection('antibioticos').doc(name).set(data);
     ABX[name] = data;
     buildAdminSelect();
     document.getElementById('admin-select').value = name;
-    buildFamFilters(); filterList();
+    buildFamFilters(); 
+    filterList();
     editingName = name;
     if (selName === name) renderDetail(name);
     const n = document.getElementById('admin-notice');
-    n.style.display = 'block'; setTimeout(() => n.style.display = 'none', 3000);
+    n.style.display = 'block'; 
+    setTimeout(() => n.style.display = 'none', 3000);
     document.getElementById('delBtn').style.display = '';
-  } catch (err) { alert('Error al guardar: ' + err.message); }
+  } catch (err) { 
+    alert('Error al guardar: ' + err.message); 
+  }
 }
 async function deleteAntibiotic() {
   const name = editingName || document.getElementById('admin-select').value;
@@ -510,16 +521,32 @@ function closeAdmin() { document.getElementById('admin-panel').classList.remove(
 function buildAdminSelect() {
   const sel = document.getElementById('admin-select');
   sel.innerHTML = '<option value="">-- Crear Nuevo --</option>';
-  Object.keys(ABX).sort().forEach(n => { sel.innerHTML += `<option value="${n}">${n}</option>`; });
+  Object.keys(ABX).sort((a,b) => a.localeCompare(b)).forEach(n => { 
+    sel.innerHTML += `<option value="${n.replace(/"/g, '&quot;')}">${n}</option>`; 
+  });
 }
 function loadAdminData(name) {
   editingName = name || null;
   const d = name ? ABX[name] : {};
+  
+  // Función helper para obtener valor de múltiples claves
+  function getVal(keys) {
+    for (let key of keys) {
+      if (d[key] && d[key].toString().trim()) return d[key];
+    }
+    return '';
+  }
+  
   document.getElementById('af-name').value = name || '';
   document.getElementById('af-name').disabled = !!name;
   document.getElementById('af-fam').value = d.familia || '';
-  document.getElementById('af-mecanismo').value = d.mecanismo_accion || '';
-  document.getElementById('af-dose').value = d.dosificacion || '';
+  
+  // Mecanismo - buscar en múltiples claves
+  document.getElementById('af-mecanismo').value = getVal(['mecanismo_accion', 'mecanismo', 'mecanismo_de_accion']);
+  
+  // Dosificación - buscar en múltiples claves
+  document.getElementById('af-dose').value = getVal(['dosificacion', 'dosis']);
+  
   document.getElementById('af-administracion').value = d.administracion || '';
   document.getElementById('af-preparacion').value = d.preparacion || '';
   document.getElementById('af-renal').value = d.ajuste_renal || '';
@@ -531,9 +558,9 @@ function loadAdminData(name) {
   document.getElementById('af-inter').value = d.interacciones || '';
   document.getElementById('af-pk').value = d.farmacocinetica || '';
   document.getElementById('af-completo').value = d.contenido_completo || '';
+  
   document.getElementById('delBtn').style.display = name ? 'block' : 'none';
 }
-
 // ── CONTROL DE SESIÓN ──
 auth.onAuthStateChanged(async (user) => {
   const loginScreen = document.getElementById('login');
