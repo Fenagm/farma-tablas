@@ -255,6 +255,58 @@ body{font-family:'DM Sans',sans-serif;background:var(--ink);color:var(--ink);hei
 ::-webkit-scrollbar-thumb { background:var(--g1); border-radius:3px; }
 ::-webkit-scrollbar-thumb:hover { background:var(--g2); }
 
+  .renal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.renal-table th, .renal-table td {
+    border: 1px solid var(--g2);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+.renal-table th {
+    background: var(--paper2);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+.renal-table tbody tr:nth-child(even) {
+    background-color: var(--paper);
+}
+.pre-renal {
+    background: var(--paper);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    max-height: 400px;
+    margin: 0;
+}
+.monografia-content {
+    transition: max-height 0.2s ease-out;
+    overflow: auto;
+}
+.toggle-monografia {
+    background: none;
+    border: none;
+    color: var(--sea);
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-left: auto;
+}
+.section-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 22px 0 14px;
+}
+  
 /* RESPONSIVE */
 @media(max-width:768px){
   :root{--sidebar:100%;--header:44px;}
