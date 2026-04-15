@@ -37,11 +37,11 @@ function renderAjusteRenal(d) {
         const headers = table.headers || [];
         const rows = table.rows || [];
         if (headers.length && rows.length) {
-            let html = '<div style="overflow-x:auto;"><table class="renal-table" style="width:100%; border-collapse:collapse; font-size:12px;">';
-            html += '<thead><tr>' + headers.map(h => `<th style="border:1px solid var(--g2); padding:6px 8px; background:var(--paper2);">${escapeHtml(h)}</th>`).join('') + '</thead>';
+            let html = '<div style="overflow-x:auto;"><table class="renal-table">';
+            html += '<thead>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</thead>';
             html += '<tbody>';
             for (const row of rows) {
-                html += '<tr>' + row.map(cell => `<td style="border:1px solid var(--g2); padding:6px 8px;">${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
+                html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
             }
             html += '</tbody></table></div>';
             return html;
@@ -49,12 +49,11 @@ function renderAjusteRenal(d) {
     }
     // 2. Si no hay tabla, mostrar ajuste_renal_raw con formato pre
     if (d.ajuste_renal_raw) {
-        return `<pre style="white-space:pre-wrap; font-family:'DM Mono',monospace; font-size:12px; background:var(--paper); padding:12px; border-radius:8px; overflow-x:auto;">${escapeHtml(d.ajuste_renal_raw)}</pre>`;
+        return `<pre class="pre-renal">${escapeHtml(d.ajuste_renal_raw)}</pre>`;
     }
-    // 3. Fallback: ajuste_renal (texto plano)
+    // 3. Fallback
     return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
 }
-
 function getValue(d, keys, defaultValue = '—') {
     for (let key of keys) {
         if (d[key] && d[key].toString().trim()) return d[key];
@@ -207,8 +206,16 @@ function renderDetail(name) {
     const farmacocinetica = getValue(d, ['farmacocinetica']);
     const contenido_completo = getValue(d, ['contenido_completo']);
 
-    const extraHTML = contenido_completo !== '—' ? `<div class="section-divider"><span>Monografía</span></div><div class="card"><div class="card-ttl">Contenido Completo</div><div class="body-txt">${escapeHtml(contenido_completo)}</div></div>` : '';
-
+const extraHTML = contenido_completo !== '—' ? `
+<div class="section-divider">
+    <span>Monografía</span>
+    <button class="toggle-monografia" onclick="toggleMonografia(this)">▲ Mostrar menos</button>
+</div>
+<div class="card monografia-content" style="max-height:300px; overflow-y:auto;">
+    <div class="card-ttl">Contenido Completo</div>
+    <div class="body-txt" style="white-space:pre-wrap;">${escapeHtml(contenido_completo)}</div>
+</div>` : '';
+    
     document.getElementById('main').innerHTML = `
         <div class="detail">
             <div class="d-hdr">
@@ -402,7 +409,16 @@ function loadAdminData(name) {
 
     document.getElementById('delBtn').style.display = name ? 'block' : 'none';
 }
-
+function toggleMonografia(btn) {
+    const content = btn.closest('.section-divider').nextElementSibling;
+    if (content.style.maxHeight) {
+        content.style.maxHeight = '';
+        btn.innerHTML = '▲ Mostrar menos';
+    } else {
+        content.style.maxHeight = '300px';
+        btn.innerHTML = '▼ Mostrar más';
+    }
+}
 // ── CONTROL DE SESIÓN ──────────────────────────────────────────────────
 auth.onAuthStateChanged(async (user) => {
     const loginScreen = document.getElementById('login');
