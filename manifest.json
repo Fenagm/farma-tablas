@@ -2,7 +2,7 @@
   "name": "Farmacia Clínica | Antibióticos y Estabilidades",
   "short_name": "Farmacia Clínica",
   "description": "Sistema de consulta de antibióticos y estabilidades para farmacia clínica",
-  "start_url": "./index.html",
+ "start_url": "/farma-tablas/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ba0070",

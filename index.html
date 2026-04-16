@@ -518,16 +518,7 @@ if ('serviceWorker' in navigator) {
   });
 
   window.addEventListener('load', () => {
-    const isGitHubPages = window.location.hostname.endsWith('github.io');
-    const pathParts = window.location.pathname.split('/').filter(Boolean);
-    const basePath = isGitHubPages && pathParts.length > 0 ? `/${pathParts[0]}/` : '/';
-
-    const swUrl = `${basePath}sw.js`;
-    const swScope = basePath;
-    const swUrl = new URL('sw.js', window.location.href);
-    const swScope = new URL('.', window.location.href).pathname;
-
-    navigator.serviceWorker.register(swUrl, { scope: swScope })
+navigator.serviceWorker.register('/farma-tablas/sw.js', { scope: '/farma-tablas/' })
       .then((registration) => {
         console.log('[PWA] SW registrado:', registration.scope);
       })
