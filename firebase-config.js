@@ -1,7 +1,7 @@
 // Configuración de Firebase
 // NOTA: En producción, considera usar variables de entorno mediante un proceso de build
 const firebaseConfig = {
-    apiKey: "AIzaSyDwl-HYHoqIRbhOwq0qsf0WHSCXnJrTEUo",
+    apiKey: "AIzaSyDwl-hYHoqIRbhOwq0qsf0WHSCXnJrTEUo",
     authDomain: "atb-med.firebaseapp.com",
     projectId: "atb-med",
     storageBucket: "atb-med.firebasestorage.app",
