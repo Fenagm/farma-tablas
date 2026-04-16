@@ -1,9 +1,11 @@
-const CACHE_NAME = 'farmacia-clinica-v1';
+const CACHE_NAME = 'farmacia-clinica-v2';
+const BASE_PATH = self.location.pathname.replace(/[^/]+$/, '');
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/app.js',
-  '/manifest.json'
+  BASE_PATH,
+  `${BASE_PATH}index.html`,
+  `${BASE_PATH}app.js`,
+  `${BASE_PATH}manifest.json`,
+  `${BASE_PATH}firebase-config.js`
 ];
 
 // Instalación del Service Worker
@@ -72,7 +74,7 @@ self.addEventListener('fetch', (event) => {
       .catch(() => {
         // Si falla todo, devolver offline page si es HTML
         if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('/index.html');
+          return caches.match(`${BASE_PATH}index.html`);
         }
       })
   );
