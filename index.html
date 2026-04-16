@@ -488,7 +488,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 if ('serviceWorker' in navigator) {
   // Registrar Service Worker
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    const swUrl = new URL('sw.js', window.location.href);
+    const swScope = new URL('.', window.location.href).pathname;
+
+    navigator.serviceWorker.register(swUrl, { scope: swScope })
       .then((registration) => {
         console.log('[PWA] SW registrado:', registration.scope);
         
