@@ -1,11 +1,6 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyDwl-hYHoqIRbhOwq0qsf0WHSCXnJrTEUo",
-    authDomain: "atb-med.firebaseapp.com",
-    projectId: "atb-med",
-    storageBucket: "atb-med.firebasestorage.app",
-    messagingSenderId: "152259249782",
-    appId: "1:152259249782:web:963f3acfc41ba75d304157"
-};
+// Importar configuración de Firebase desde archivo separado
+// Esto permite gestionar las credenciales de forma más organizada y segura
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
