@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ba0070'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>💊</text></svg>">
 <title>Farmacia Clínica | Antibióticos y Estabilidades</title>
@@ -316,7 +317,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 }
   
 /* RESPONSIVE */
-@media(max-width:768px){
+@media(max-width:768px), (hover:none) and (pointer:coarse){
   :root{--sidebar:100%;--header:44px;}
   .hdr{height:44px;padding:0 12px 0 14px;}
   .hdr-logo-text{display:none;}
@@ -341,6 +342,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
   .main{min-height:0;}
   .estab-table th,.estab-table td{font-size:11px;padding:8px 10px;}
   .drug-name-cell{font-size:12px;}
+}
+
+
+@media (orientation: landscape) and (hover:none) and (pointer:coarse) {
+  :root{--header:40px;--bottom-nav:50px;}
+  .sidebar{max-height:58vh;}
+  .abx-list{max-height:calc(58vh - 96px);}
+  .detail{padding:12px 14px 64px;}
+  .d-name{font-size:24px;}
 }
 
 /* FONDO CLARO EN ESCRITORIO */
@@ -508,6 +518,12 @@ if ('serviceWorker' in navigator) {
   });
 
   window.addEventListener('load', () => {
+    const isGitHubPages = window.location.hostname.endsWith('github.io');
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const basePath = isGitHubPages && pathParts.length > 0 ? `/${pathParts[0]}/` : '/';
+
+    const swUrl = `${basePath}sw.js`;
+    const swScope = basePath;
     const swUrl = new URL('sw.js', window.location.href);
     const swScope = new URL('.', window.location.href).pathname;
 
