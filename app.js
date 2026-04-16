@@ -2,8 +2,13 @@
 // Esto permite gestionar las credenciales de forma más organizada y segura
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+let auth = null;
 const db = firebase.firestore();
+
+function getAuth() {
+    if (!auth) auth = firebase.auth();
+    return auth;
+}
 
 let ABX = {};
 let ESTAB = [];
@@ -63,7 +68,7 @@ async function doLogin() {
     const btn = document.querySelector('.lbtn');
     btn.innerText = 'Verificando...'; btn.disabled = true;
     try {
-        const cred = await auth.signInWithEmailAndPassword(email, password);
+        const cred = await getAuth().signInWithEmailAndPassword(email, password);
         currentUser = cred.user;
         await Promise.all([loadDataFromFirestore(), loadEstabilidades()]);
         document.getElementById('login').style.display = 'none';
@@ -80,7 +85,10 @@ async function doLogin() {
         btn.innerText = 'Ingresar →'; btn.disabled = false;
     }
 }
-function doLogout() { auth.signOut().then(() => location.reload()); }
+function doLogout() {
+    if (!auth) return location.reload();
+    auth.signOut().then(() => location.reload());
+}
 document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('usr').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pwd').focus(); });
 
