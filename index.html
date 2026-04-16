@@ -9,6 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.json">
+<link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ba0070'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white'>💊</text></svg>">
 <title>Farmacia Clínica | Antibióticos y Estabilidades</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
@@ -29,6 +30,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 
 /* LOGIN */
 #login{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;width:100%;
+#login{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;max-width:480px;margin:0 auto;width:100%;
   background:radial-gradient(ellipse 120% 80% at 50% 0%, #fff8fc 0%, #ffe7f4 100%);}
 .login-bg{position:absolute;inset:0;overflow:hidden;}
 .login-bg::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;
@@ -57,6 +59,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 
 /* APP SHELL */
 #app{display:none;flex-direction:column;height:100vh;width:100%;}
+#app{display:none;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;}
 .hdr{height:var(--header);background:var(--white);display:flex;align-items:center;
   padding:0 20px 0 24px;gap:14px;border-bottom:1px solid var(--g1);flex-shrink:0;z-index:10;}
 .hdr-logo{display:flex;align-items:center;gap:10px;}
@@ -521,6 +524,8 @@ if ('serviceWorker' in navigator) {
 
     const swUrl = `${basePath}sw.js`;
     const swScope = basePath;
+    const swUrl = new URL('sw.js', window.location.href);
+    const swScope = new URL('.', window.location.href).pathname;
 
     navigator.serviceWorker.register(swUrl, { scope: swScope })
       .then((registration) => {
