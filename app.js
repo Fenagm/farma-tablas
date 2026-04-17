@@ -1,3 +1,4 @@
+Prueba la IA directamente en tus aplicaciones favoritas … Usa Gemini para generar borradores y pulir contenido, y disfruta de Gemini Pro con acceso a la IA de nueva generación de Google por 19,99 US$ 0 US$ durante 1 mes
 // Importar configuración de Firebase desde archivo separado
 // Esto permite gestionar las credenciales de forma más organizada y segura
 
