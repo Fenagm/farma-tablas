@@ -31,6 +31,62 @@ function escapeHtml(str) {
 }
 
 function renderAjusteRenal(d) {
+    const renderMarkdownTableFromText = (inputText) => {
+        if (!inputText) return null;
+        const normalizedRaw = inputText.replace(/\r/g, '');
+        const lines = normalizedRaw.split('\n').map(l => l.trim()).filter(Boolean);
+        if (!lines.length) return null;
+
+        const isSeparatorLine = (line) => {
+            const clean = line.trim();
+            if (!clean.includes('|')) return false;
+            const withoutAllowed = clean.replace(/[|:\-\s–—]/g, '');
+            const dashCount = (clean.match(/[-–—]/g) || []).length;
+            return withoutAllowed.length === 0 && dashCount >= 3;
+        };
+        const parseRow = (line) => line
+            .replace(/^\|/, '')
+            .replace(/\|$/, '')
+            .split('|')
+            .map(cell => cell.trim());
+
+        let tableStart = -1;
+        let tableEnd = -1;
+        for (let i = 0; i < lines.length - 2; i++) {
+            const header = lines[i];
+            const separator = lines[i + 1];
+            if (!header.includes('|') || !isSeparatorLine(separator)) continue;
+            tableStart = i;
+            tableEnd = i + 2;
+            while (tableEnd < lines.length && lines[tableEnd].includes('|')) tableEnd++;
+            break;
+        }
+
+        if (tableStart < 0) return null;
+
+        const tableLines = lines.slice(tableStart, tableEnd);
+        const headers = parseRow(tableLines[0]);
+        const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+        if (!headers.length || !bodyRows.length) return null;
+
+        let html = '<div class="renal-table"><table><thead><tr>';
+        html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+        html += '</tr></thead><tbody>';
+        bodyRows.forEach(row => {
+            const normalized = headers.map((_, idx) => row[idx] || '—');
+            html += '<tr>' + normalized.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>';
+        });
+        html += '</tbody></table></div>';
+
+        const beforeText = lines.slice(0, tableStart);
+        const afterText = lines.slice(tableEnd);
+        const extraText = [...beforeText, ...afterText];
+        if (extraText.length) {
+            html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n'))}</div>`;
+        }
+        return html;
+    };
+
     // 1. Si existe la tabla estructurada, la usamos
     if (d.ajuste_renal_table && typeof d.ajuste_renal_table === 'object') {
         const table = d.ajuste_renal_table;
@@ -47,7 +103,7 @@ function renderAjusteRenal(d) {
             return html;
         }
     }
-    // 2. Si no hay tabla, mostrar ajuste_renal_raw con formato pre
+    // 2. Intentar parsear markdown table desde ajuste_renal_raw (o campos legacy)
     if (d.ajuste_renal_raw) {
         const raw = d.ajuste_renal_raw;
         const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
@@ -252,10 +308,10 @@ function renderDetail(name) {
             </div>
             <div class="detail-tabs">
                 <button class="dtab on" onclick="switchDTab(event,'dt-general')">💊 General</button>
-                <button class="dtab" onclick="switchDTab(event,'dt-monografia')">📄 Monografía</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-ajustes')">⚖️ Ajustes</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-seguridad')">⚠️ Seguridad</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-pk')">📈 Farmacocinética</button>
+                <button class="dtab" onclick="switchDTab(event,'dt-monografia')">📄 Monografía</button>
             </div>
 
             <!-- General -->
@@ -265,14 +321,6 @@ function renderDetail(name) {
                     <div class="card"><div class="card-ttl">Dosificación</div><div class="body-txt">${escapeHtml(dosificacion)}</div></div>
                     <div class="card"><div class="card-ttl">Administración</div><div class="body-txt">${escapeHtml(administracion)}</div></div>
                     <div class="card"><div class="card-ttl">Preparación / Reconstitución</div><div class="body-txt">${escapeHtml(preparacion)}</div></div>
-                </div>
-            </div>
-
-            <!-- Monografía -->
-            <div class="dtab-panel" id="dt-monografia">
-                <div class="card">
-                    <div class="card-ttl">Contenido Completo</div>
-                    <div class="body-txt" style="white-space:pre-wrap;">${escapeHtml(contenido_completo)}</div>
                 </div>
             </div>
 
@@ -298,6 +346,14 @@ function renderDetail(name) {
             <!-- Farmacocinética -->
             <div class="dtab-panel" id="dt-pk">
                 <div class="card"><div class="card-ttl">Farmacocinética</div><div class="body-txt">${escapeHtml(farmacocinetica)}</div></div>
+            </div>
+
+            <!-- Monografía -->
+            <div class="dtab-panel" id="dt-monografia">
+                <div class="card">
+                    <div class="card-ttl">Contenido Completo</div>
+                    <div class="body-txt" style="white-space:pre-wrap;">${escapeHtml(contenido_completo)}</div>
+                </div>
             </div>
         </div>`;
     filterList();
