@@ -50,36 +50,17 @@ function renderAjusteRenal(d) {
     // 2. Si no hay tabla, mostrar ajuste_renal_raw con formato pre
     if (d.ajuste_renal_raw) {
         const raw = d.ajuste_renal_raw;
-        const normalizedRaw = raw.replace(/\r/g, '');
-        const lines = normalizedRaw.split('\n').map(l => l.trim()).filter(Boolean);
-        const isSeparatorLine = (line) => {
-            const clean = line.trim();
-            if (!clean.includes('|')) return false;
-            const withoutAllowed = clean.replace(/[|:\-\s–—]/g, '');
-            const dashCount = (clean.match(/[-–—]/g) || []).length;
-            return withoutAllowed.length === 0 && dashCount >= 3;
-        };
-        const parseRow = (line) => line
-            .replace(/^\|/, '')
-            .replace(/\|$/, '')
-            .split('|')
-            .map(cell => cell.trim());
+        const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+        const tableLines = lines.filter(line => line.includes('|'));
+        const separatorRegex = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/;
+        const separatorIdx = tableLines.findIndex(line => separatorRegex.test(line));
 
-        // Detecta primer bloque de tabla markdown contiguo (header + separator + rows)
-        let tableStart = -1;
-        let tableEnd = -1;
-        for (let i = 0; i < lines.length - 2; i++) {
-            const header = lines[i];
-            const separator = lines[i + 1];
-            if (!header.includes('|') || !isSeparatorLine(separator)) continue;
-            tableStart = i;
-            tableEnd = i + 2;
-            while (tableEnd < lines.length && lines[tableEnd].includes('|')) tableEnd++;
-            break;
-        }
-
-        if (tableStart >= 0) {
-            const tableLines = lines.slice(tableStart, tableEnd);
+        if (tableLines.length >= 3 && separatorIdx === 1) {
+            const parseRow = (line) => line
+                .replace(/^\|/, '')
+                .replace(/\|$/, '')
+                .split('|')
+                .map(cell => cell.trim());
             const headers = parseRow(tableLines[0]);
             const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
             if (headers.length && bodyRows.length) {
@@ -87,16 +68,12 @@ function renderAjusteRenal(d) {
                 html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
                 html += '</tr></thead><tbody>';
                 bodyRows.forEach(row => {
-                    const normalized = headers.map((_, idx) => row[idx] || '—');
-                    html += '<tr>' + normalized.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>';
+                    html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
                 });
                 html += '</tbody></table></div>';
-
-                const beforeText = lines.slice(0, tableStart);
-                const afterText = lines.slice(tableEnd);
-                const extraText = [...beforeText, ...afterText];
-                if (extraText.length) {
-                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n'))}</div>`;
+                const nonTableLines = lines.filter(line => !tableLines.includes(line));
+                if (nonTableLines.length) {
+                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n'))}</div>`;
                 }
                 return html;
             }
