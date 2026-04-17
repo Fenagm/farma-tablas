@@ -271,12 +271,28 @@ function buildFamFilters() {
         row.innerHTML += `<button class="fbtn ${activeFam === f ? 'on' : ''}" onclick="filterFam('${f.replace(/'/g, "\\'")}')">${f}</button>`;
     });
 }
-function filterFam(fam) { activeFam = fam; buildFamFilters(); filterList(); }
+function filterFam(fam) { 
+    activeFam = fam; 
+    buildFamFilters(); 
+    if (selName) {
+        clearSelection();
+    } else {
+        filterList(); 
+    }
+}
 
 function clearSelection() {
     selName = null;
     filterList();
     document.getElementById('main').innerHTML = '<div class="empty"><div class="empty-ico">💊</div><div class="empty-txt">Seleccioná un antibiótico para ver su ficha</div><div class="empty-hint">Usá el buscador o filtrá por familia</div></div>';
+}
+
+function handleSearchInput() {
+    if (selName) {
+        clearSelection();
+    } else {
+        filterList();
+    }
 }
 
 function filterList() {
