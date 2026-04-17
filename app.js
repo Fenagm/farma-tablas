@@ -77,6 +77,7 @@ async function doLogin() {
             document.getElementById('adminBtn').style.display = '';
         }
         initApp();
+        renderEstabTable(); // Renderizar tabla para mostrar/ocultar botón Agregar
     } catch {
         const e = document.getElementById('lerr');
         e.style.display = 'block';
@@ -102,7 +103,7 @@ function switchPage(pageId, btn, isMobile = false) {
         document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('on'));
         let topId = 'nav-abx';
         if (pageId === 'page-estab') topId = 'nav-estab';
-        else if (pageId === 'page-calc') topId = 'nav-abx';
+        else if (pageId === 'page-calc') topId = 'nav-calc';
         const topBtn = document.getElementById(topId);
         if (topBtn) topBtn.classList.add('on');
     } else {
@@ -134,6 +135,7 @@ async function loadEstabilidades() {
         ESTAB.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         document.getElementById('estab-loading').style.display = 'none';
         buildEstabAdminSelect();
+        renderEstabTable(); // Renderizar tabla para mostrar/ocultar botón Agregar
     } catch (err) {
         document.getElementById('estab-loading').innerText = 'Error al cargar estabilidades.';
     }
@@ -234,7 +236,6 @@ const extraHTML = contenido_completo !== '—' ? `
                 <button class="dtab" onclick="switchDTab(event,'dt-ajustes')">⚖️ Ajustes</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-seguridad')">⚠️ Seguridad</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-pk')">📈 Farmacocinética</button>
-                <button class="dtab" onclick="switchDTab(event,'dt-calcular')">🧮 Calcular</button>
             </div>
 
             <!-- General -->
@@ -270,11 +271,6 @@ const extraHTML = contenido_completo !== '—' ? `
             <!-- Farmacocinética -->
             <div class="dtab-panel" id="dt-pk">
                 <div class="card"><div class="card-ttl">Farmacocinética</div><div class="body-txt">${escapeHtml(farmacocinetica)}</div></div>
-            </div>
-
-            <!-- Calcular -->
-            <div class="dtab-panel" id="dt-calcular">
-                ${buildToolsHTML()}
             </div>
         </div>`;
     filterList();
@@ -402,6 +398,16 @@ function calcPicovalle() {
 
 // ── ESTABILIDADES TABLE (solo lectura) ─────────────────────────────────
 function renderEstabTable() {
+  // Ocultar/mostrar botón Agregar según si es admin
+  const addBtn = document.getElementById('estabAddBtn');
+  if (addBtn) {
+    if (currentUser && currentUser.email === 'farmaceuticasiaf@gmail.com') {
+      addBtn.style.display = '';
+    } else {
+      addBtn.style.display = 'none';
+    }
+  }
+
   const q = document.getElementById('estab-srch').value.toLowerCase();
   const tbody = document.getElementById('estab-tbody');
   const loading = document.getElementById('estab-loading');
@@ -456,6 +462,11 @@ function buildEstabAdminSelect() {
   });
 }
 function openEstabAdmin(id = null) {
+  // Solo admin puede agregar/editar estabilidades
+  if (!currentUser || currentUser.email !== 'farmaceuticasiaf@gmail.com') {
+    alert('Solo el administrador puede agregar o editar estabilidades.');
+    return;
+  }
   editingEstabId = id;
   buildEstabAdminSelect();
   if (id) document.getElementById('admin-estab-select').value = id;

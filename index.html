@@ -385,6 +385,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     </div>
     <nav class="hdr-nav">
       <button class="hnav-btn on" id="nav-abx" onclick="switchPage('page-abx',this)"><span>💊</span> Antibióticos</button>
+      <button class="hnav-btn" id="nav-calc" onclick="switchPage('page-calc',this)"><span>🧮</span> Calcular</button>
       <button class="hnav-btn" id="nav-estab" onclick="switchPage('page-estab',this)"><span>🧪</span> Estabilidades</button>
     </nav>
     <div class="hdr-btns">
@@ -438,7 +439,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
         <div class="estab-toolbar">
           <div class="estab-srch-wrap"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg><input class="estab-srch" id="estab-srch" type="text" placeholder="Buscar fármaco, vehículo, observaciones…" oninput="filterEstab()"></div>
           <div class="estab-tipo-filter"><button class="etfbtn on" onclick="filterEstabTipo('',this)">Todos</button><button class="etfbtn" onclick="filterEstabTipo('QMT',this)">QMT</button><button class="etfbtn" onclick="filterEstabTipo('NO_QMT',this)">No QMT</button></div>
-          <button class="hbtn accent" onclick="openEstabAdmin()">＋ Agregar</button>
+          <button class="hbtn accent" id="estabAddBtn" onclick="openEstabAdmin()">＋ Agregar</button>
         </div>
         <div class="estab-meta" id="estab-meta"></div>
         <div class="estab-table-wrap">
