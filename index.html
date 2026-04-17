@@ -98,10 +98,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .srch-inp{width:100%;border:1.5px solid var(--g1);border-radius:10px;padding:10px 10px 10px 34px;
   font-size:12.5px;font-family:'DM Sans',sans-serif;outline:none;color:var(--ink);background:var(--paper);transition:all .18s;}
 .srch-inp:focus{border-color:var(--rose);background:var(--white);box-shadow:0 0 0 3px rgba(186,0,112,.1);}
-.fam-wrap{padding:8px 14px 10px;border-bottom:1px solid var(--g1);}
-.fam-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--g3);margin-bottom:7px;}
-.fam-row{display:flex;flex-wrap:wrap;gap:4px;}
-.fbtn{font-size:10px;padding:3px 9px;border-radius:20px;border:1.5px solid var(--g1);background:none;color:var(--g3);
+.fam-wrap{padding:6px 10px 8px;border-bottom:1px solid var(--g1);}
+.fam-lbl{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--g3);margin-bottom:4px;}
+.fam-row{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:3px;padding-bottom:2px;}
+.fbtn{font-size:9px;padding:2px 7px;border-radius:20px;border:1px solid var(--g1);background:none;color:var(--g3);
   cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s;white-space:nowrap;font-weight:500;}
 .fbtn.on{background:var(--rose);border-color:var(--rose);color:var(--white);}
 .fbtn:hover:not(.on){border-color:var(--ink2);color:var(--ink2);}
@@ -122,7 +122,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .empty-txt{font-size:13px;font-weight:500;}
 .empty-hint{font-size:11px;color:var(--g2);}
 
-.detail{padding:30px 20px 80px;max-width:1100px;margin:0 auto;}
+.detail{padding:24px 20px 80px;max-width:none;margin:0;width:100%;}
 .d-hdr{margin-bottom:24px;padding-bottom:22px;border-bottom:1px solid var(--paper3);}
 .d-fam{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;letter-spacing:.1em;
   text-transform:uppercase;padding:4px 11px;border-radius:20px;background:var(--rose-pale);color:var(--rose);margin-bottom:12px;}
@@ -131,6 +131,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .two-col{grid-template-columns:1fr 1fr;}
 .three-col{grid-template-columns:1fr 1fr 1fr;}
 .card{background:var(--white);border-radius:var(--r);padding:20px 24px;border:1px solid var(--paper3);box-shadow:var(--shadow);}
+.card-full{grid-column:1/-1;}
 .card-ttl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--rose);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .card-ttl::before{content:'';width:16px;height:1.5px;background:var(--rose);}
 .body-txt{font-size:14px;line-height:1.7;color:var(--ink);white-space:pre-wrap;}
@@ -251,36 +252,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 /* RENAL TABLE (mejora visual) */
 .renal-table { 
     width: 100%;
-    border-collapse: collapse;
     font-size: 12px;
     max-width: 100%;
     display: block;
     overflow-x: auto;
     overflow-y: auto;
-    max-height: 400px;
+    max-height: 420px;
+    border: 1px solid var(--g2);
+    border-radius: 8px;
+    background: var(--white);
 }
 .renal-table table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
+    min-width: 520px;
+    table-layout: auto;
 }
 .renal-table th { 
-    background: var(--paper2); 
+    background: var(--rose-pale); 
     font-weight: 600; 
     white-space: nowrap;
     border: 1px solid var(--g2);
-    padding: 8px 10px;
+    padding: 8px 9px;
     text-align: left;
     vertical-align: top;
     position: sticky;
     top: 0;
+    z-index: 1;
 }
 .renal-table td { 
     white-space: pre-wrap;
+    word-break: break-word;
     border: 1px solid var(--g2);
-    padding: 8px 10px;
+    padding: 8px 9px;
     text-align: left;
     vertical-align: top;
+    line-height: 1.45;
 }
 .renal-table tbody tr:nth-child(even) {
     background-color: var(--paper);
@@ -319,9 +326,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
   .layout{flex-direction:column;}
   .sidebar{width:100%;max-height:45vh;border-right:none;border-bottom:1px solid var(--g1);display:flex;flex-direction:column;overflow:hidden;}
   .abx-list{max-height:calc(45vh - 110px);overflow-y:auto;}
-  .fam-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:8px;}
+  .fam-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:6px;}
   .fam-row::-webkit-scrollbar{height:3px;}
-  .fbtn{font-size:11px;padding:4px 12px;white-space:nowrap;}
+  .fbtn{font-size:10px;padding:3px 10px;white-space:nowrap;}
   .aname{font-size:14px;}
   .atag{font-size:9px;}
   .detail{padding:14px 16px 80px;}
@@ -350,7 +357,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 @media(min-width:769px){
   body{background:linear-gradient(135deg, #fff4fa 0%, #ffe7f4 100%);}
   #login{box-shadow:0 0 40px rgba(0,0,0,.3);}
-  #app{max-width:1200px;margin:0 auto;border-left:1px solid var(--g1);border-right:1px solid var(--g1);box-shadow:0 0 40px rgba(0,0,0,.1);}
+  #app{width:100%;max-width:none;margin:0;border-left:none;border-right:none;box-shadow:none;}
 }
 </style>
 </head>
@@ -417,7 +424,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
               <button class="ttab" onclick="switchTab(event,'tab-pk')">📈 T&gt;CMI</button>
               <button class="ttab" onclick="switchTab(event,'tab-cp')">💉 Pico/Valle</button>
             </div>
-            <div class="tool-panel on" id="tab-crcl"><div class="tool-card"><h3>Aclaramiento de Creatinina (Cockcroft-Gault)</h3><p>Estima la función renal para ajustar dosis. Usar peso ajustado en obesos automáticamente.</p><div class="tool-grid"><div class="tf"><label>Edad (años)</label><input id="cg-edad" type="number" placeholder="65"></div><div class="tf"><label>Peso real (kg)</label><input id="cg-peso" type="number" placeholder="70"></div><div class="tf"><label>Talla (cm) <span style="font-weight:400;text-transform:none;color:var(--g3);">(opcional)</span></label><input id="cg-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="cg-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div><div class="tf"><label>Creatinina (mg/dL)</label><input id="cg-cr" type="number" step="0.1" placeholder="1.0"></div></div><button class="calc-btn" onclick="calcCrCl()">Calcular CrCl →</button><div class="result-box" id="res-crcl"></div></div></div>
+            <div class="tool-panel on" id="tab-crcl"><div class="tool-card"><h3>Aclaramiento de Creatinina (Cockcroft-Gault)</h3><p>Estima la función renal para ajustar dosis. Usar peso ajustado en obesos automáticamente.</p><div class="tool-grid"><div class="tf"><label>Edad (años)</label><input id="cg-edad" type="number" placeholder="65"></div><div class="tf"><label>Peso real (kg)</label><input id="cg-peso" type="number" placeholder="70"></div><div class="tf"><label>Altura <span style="font-weight:400;text-transform:none;color:var(--g3);">(opcional, cm o m)</span></label><input id="cg-talla" type="number" step="0.01" placeholder="170 o 1.70"></div><div class="tf"><label>Sexo</label><select id="cg-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div><div class="tf"><label>Creatinina (mg/dL)</label><input id="cg-cr" type="number" step="0.1" placeholder="1.0"></div></div><button class="calc-btn" onclick="calcCrCl()">Calcular CrCl →</button><div class="result-box" id="res-crcl"></div></div></div>
             <div class="tool-panel" id="tab-dosis"><div class="tool-card"><h3>Peso de Dosificación en Obesidad</h3><p>Calcula IBW (Devine), ABW (factor 0.4) e IMC para orientar la dosificación.</p><div class="tool-grid"><div class="tf"><label>Peso real (kg)</label><input id="ob-peso" type="number" placeholder="110"></div><div class="tf"><label>Talla (cm)</label><input id="ob-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="ob-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div></div><button class="calc-btn" onclick="calcObesos()">Calcular →</button><div class="result-box" id="res-obesos"></div></div></div>
             <div class="tool-panel" id="tab-pk"><div class="tool-card"><h3>T&gt;CMI — Antibióticos Tiempo-Dependientes</h3><p>Estima % del intervalo con concentración libre sobre la CMI. Meta ≥ 40–50% (beta-lactámicos).</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="pk-dosis" type="number" placeholder="1000"></div><div class="tf"><label>Intervalo (hs)</label><input id="pk-intervalo" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="pk-vd" type="number" step="0.01" placeholder="0.2"></div><div class="tf"><label>Peso (kg)</label><input id="pk-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="pk-t12" type="number" step="0.1" placeholder="1.5"></div><div class="tf"><label>CMI (mg/L)</label><input id="pk-cmi" type="number" step="0.001" placeholder="2"></div><div class="tf"><label>Fracción libre (fu)</label><input id="pk-fu" type="number" step="0.01" placeholder="0.9"></div></div><button class="calc-btn" onclick="calcPKPD()">Calcular T&gt;CMI →</button><div class="result-box" id="res-pkpd"></div></div></div>
             <div class="tool-panel" id="tab-cp"><div class="tool-card"><h3>Concentración Pico y Valle (1 compartimento)</h3><p>Cmax y Ctrough al estado estacionario. Útil para aminoglucósidos y vancomicina.</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="cp-dosis" type="number" placeholder="500"></div><div class="tf"><label>Intervalo τ (hs)</label><input id="cp-tau" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="cp-vd" type="number" step="0.01" placeholder="0.25"></div><div class="tf"><label>Peso (kg)</label><input id="cp-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="cp-t12" type="number" step="0.1" placeholder="2"></div><div class="tf"><label>Infusión (min)</label><input id="cp-tinf" type="number" placeholder="30"></div></div><button class="calc-btn" onclick="calcPicovalle()">Calcular →</button><div class="result-box" id="res-cp"></div></div></div>
