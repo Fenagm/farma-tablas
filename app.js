@@ -49,7 +49,36 @@ function renderAjusteRenal(d) {
     }
     // 2. Si no hay tabla, mostrar ajuste_renal_raw con formato pre
     if (d.ajuste_renal_raw) {
-        return `<pre class="pre-renal">${escapeHtml(d.ajuste_renal_raw)}</pre>`;
+        const raw = d.ajuste_renal_raw;
+        const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+        const tableLines = lines.filter(line => line.includes('|'));
+        const separatorRegex = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/;
+        const separatorIdx = tableLines.findIndex(line => separatorRegex.test(line));
+
+        if (tableLines.length >= 3 && separatorIdx === 1) {
+            const parseRow = (line) => line
+                .replace(/^\|/, '')
+                .replace(/\|$/, '')
+                .split('|')
+                .map(cell => cell.trim());
+            const headers = parseRow(tableLines[0]);
+            const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+            if (headers.length && bodyRows.length) {
+                let html = '<div class="renal-table"><table><thead><tr>';
+                html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+                html += '</tr></thead><tbody>';
+                bodyRows.forEach(row => {
+                    html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
+                });
+                html += '</tbody></table></div>';
+                const nonTableLines = lines.filter(line => !tableLines.includes(line));
+                if (nonTableLines.length) {
+                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n'))}</div>`;
+                }
+                return html;
+            }
+        }
+        return `<pre class="pre-renal">${escapeHtml(raw)}</pre>`;
     }
     // 3. Fallback
     return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
@@ -250,7 +279,7 @@ function renderDetail(name) {
             <!-- Ajustes -->
             <div class="dtab-panel" id="dt-ajustes">
                 <div class="cards-grid two-col">
-                    <div class="card"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
+                    <div class="card card-full"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
                     <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${escapeHtml(ajuste_hepatico)}</div></div>
                     <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${escapeHtml(ajuste_obesos)}</div></div>
                 </div>
