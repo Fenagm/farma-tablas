@@ -751,7 +751,7 @@ function loadAdminData(name) {
     document.getElementById('delBtn').style.display = name ? 'block' : 'none';
 }
 // ── CONTROL DE SESIÓN ──────────────────────────────────────────────────
-auth.onAuthStateChanged(async (user) => {
+getAuth().onAuthStateChanged(async (user) => {
     const loginScreen = document.getElementById('login');
     const appScreen = document.getElementById('app');
     if (user) {
