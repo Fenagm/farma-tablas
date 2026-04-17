@@ -294,7 +294,7 @@ function buildToolsHTML() {
       <button class="ttab" onclick="switchTab(event,'tab-pk')">📈 T&gt;CMI</button>
       <button class="ttab" onclick="switchTab(event,'tab-cp')">💉 Pico/Valle</button>
     </div>
-    <div class="tool-panel on" id="tab-crcl"><div class="tool-card"><h3>Aclaramiento de Creatinina (Cockcroft-Gault)</h3><p>Estima la función renal para ajustar dosis. Usar peso ajustado en obesos automáticamente.</p><div class="tool-grid"><div class="tf"><label>Edad (años)</label><input id="cg-edad" type="number" placeholder="65"></div><div class="tf"><label>Peso real (kg)</label><input id="cg-peso" type="number" placeholder="70"></div><div class="tf"><label>Talla (cm)</label><input id="cg-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="cg-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div><div class="tf"><label>Creatinina (mg/dL)</label><input id="cg-cr" type="number" step="0.1" placeholder="1.0"></div></div><button class="calc-btn" onclick="calcCrCl()">Calcular CrCl →</button><div class="result-box" id="res-crcl"></div></div></div>
+    <div class="tool-panel on" id="tab-crcl"><div class="tool-card"><h3>Aclaramiento de Creatinina (Cockcroft-Gault)</h3><p>Estima la función renal para ajustar dosis. Usar peso ajustado en obesos automáticamente.</p><div class="tool-grid"><div class="tf"><label>Edad (años)</label><input id="cg-edad" type="number" placeholder="65"></div><div class="tf"><label>Peso real (kg)</label><input id="cg-peso" type="number" placeholder="70"></div><div class="tf"><label>Talla (cm) <span style="font-weight:400;text-transform:none;color:var(--g3);">(opcional)</span></label><input id="cg-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="cg-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div><div class="tf"><label>Creatinina (mg/dL)</label><input id="cg-cr" type="number" step="0.1" placeholder="1.0"></div></div><button class="calc-btn" onclick="calcCrCl()">Calcular CrCl →</button><div class="result-box" id="res-crcl"></div></div></div>
     <div class="tool-panel" id="tab-dosis"><div class="tool-card"><h3>Peso de Dosificación en Obesidad</h3><p>Calcula IBW (Devine), ABW (factor 0.4) e IMC para orientar la dosificación.</p><div class="tool-grid"><div class="tf"><label>Peso real (kg)</label><input id="ob-peso" type="number" placeholder="110"></div><div class="tf"><label>Talla (cm)</label><input id="ob-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="ob-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div></div><button class="calc-btn" onclick="calcObesos()">Calcular →</button><div class="result-box" id="res-obesos"></div></div></div>
     <div class="tool-panel" id="tab-pk"><div class="tool-card"><h3>T&gt;CMI — Antibióticos Tiempo-Dependientes</h3><p>Estima % del intervalo con concentración libre sobre la CMI. Meta ≥ 40–50% (beta-lactámicos).</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="pk-dosis" type="number" placeholder="1000"></div><div class="tf"><label>Intervalo (hs)</label><input id="pk-intervalo" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="pk-vd" type="number" step="0.01" placeholder="0.2"></div><div class="tf"><label>Peso (kg)</label><input id="pk-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="pk-t12" type="number" step="0.1" placeholder="1.5"></div><div class="tf"><label>CMI (mg/L)</label><input id="pk-cmi" type="number" step="0.001" placeholder="2"></div><div class="tf"><label>Fracción libre (fu)</label><input id="pk-fu" type="number" step="0.01" placeholder="0.9"></div></div><button class="calc-btn" onclick="calcPKPD()">Calcular T&gt;CMI →</button><div class="result-box" id="res-pkpd"></div></div></div>
     <div class="tool-panel" id="tab-cp"><div class="tool-card"><h3>Concentración Pico y Valle (1 compartimento)</h3><p>Cmax y Ctrough al estado estacionario. Útil para aminoglucósidos y vancomicina.</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="cp-dosis" type="number" placeholder="500"></div><div class="tf"><label>Intervalo τ (hs)</label><input id="cp-tau" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="cp-vd" type="number" step="0.01" placeholder="0.25"></div><div class="tf"><label>Peso (kg)</label><input id="cp-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="cp-t12" type="number" step="0.1" placeholder="2"></div><div class="tf"><label>Infusión (min)</label><input id="cp-tinf" type="number" placeholder="30"></div></div><button class="calc-btn" onclick="calcPicovalle()">Calcular →</button><div class="result-box" id="res-cp"></div></div></div>
@@ -312,25 +312,50 @@ function switchTab(e, id) {
 function calcCrCl() {
   const edad = parseFloat(document.getElementById('cg-edad').value);
   const peso = parseFloat(document.getElementById('cg-peso').value);
-  const talla = parseFloat(document.getElementById('cg-talla').value);
+  const tallaInput = document.getElementById('cg-talla').value;
   const sexo = document.getElementById('cg-sexo').value;
   const cr = parseFloat(document.getElementById('cg-cr').value);
-  if ([edad, peso, talla, cr].some(isNaN)) return alert('Completá todos los campos');
-  const tallaIn = talla / 2.54;
-  let ibw = sexo === 'M' ? 50 + 2.3 * (tallaIn - 60) : 45.5 + 2.3 * (tallaIn - 60);
-  ibw = Math.max(ibw, 45);
-  const pesoDos = peso > ibw * 1.2 ? ibw + 0.4 * (peso - ibw) : peso;
+  
+  if ([edad, peso, cr].some(isNaN)) return alert('Completá edad, peso y creatinina');
+  
+  let pesoDos = peso;
+  let ibw = null;
+  let usaAjustado = false;
+  
+  // Si se proporciona la talla, calcular IBW y peso ajustado para obesos
+  if (tallaInput && !isNaN(parseFloat(tallaInput))) {
+    const talla = parseFloat(tallaInput);
+    const tallaIn = talla / 2.54;
+    ibw = sexo === 'M' ? 50 + 2.3 * (tallaIn - 60) : 45.5 + 2.3 * (tallaIn - 60);
+    ibw = Math.max(ibw, 45);
+    
+    if (peso > ibw * 1.2) {
+      pesoDos = ibw + 0.4 * (peso - ibw);
+      usaAjustado = true;
+    }
+  }
+  
   let crcl = ((140 - edad) * pesoDos) / (72 * cr);
   if (sexo === 'F') crcl *= 0.85;
   crcl = Math.round(crcl * 10) / 10;
+  
   let cat = '', cls = '';
   if (crcl >= 90) { cat = 'Normal (≥90)'; cls = 'pill-green'; }
   else if (crcl >= 60) { cat = 'Leve (60–89)'; cls = 'pill-green'; }
   else if (crcl >= 30) { cat = 'Moderado (30–59)'; cls = 'pill-amber'; }
   else if (crcl >= 15) { cat = 'Severo (15–29)'; cls = 'pill-red'; }
   else { cat = 'Falla renal (<15)'; cls = 'pill-red'; }
+  
   const box = document.getElementById('res-crcl');
-  box.innerHTML = `<div class="result-main">${crcl} mL/min</div><div class="result-sub">Estadio: <span class="pill ${cls}">${cat}</span><br>Peso utilizado (CG): <strong>${Math.round(pesoDos*10)/10} kg</strong> ${peso > ibw * 1.2 ? '(Peso Ajustado ABW)' : '(Peso Real)'}<br>Peso Ideal IBW: <strong>${Math.round(ibw*10)/10} kg</strong></div>${crcl < 50 ? '<div class="result-warn">⚠ CrCl &lt;50 mL/min — revisar ajuste de dosis en la ficha.</div>' : ''}`;
+  let pesoInfo = `<br>Peso utilizado (CG): <strong>${Math.round(pesoDos*10)/10} kg</strong>`;
+  if (ibw !== null) {
+    pesoInfo += ` ${usaAjustado ? '(Peso Ajustado ABW)' : '(Peso Real)'}`;
+    pesoInfo += `<br>Peso Ideal IBW: <strong>${Math.round(ibw*10)/10} kg</strong>`;
+  } else {
+    pesoInfo += ` (sin ajuste por obesidad - falta talla)`;
+  }
+  
+  box.innerHTML = `<div class="result-main">${crcl} mL/min</div><div class="result-sub">Estadio: <span class="pill ${cls}">${cat}</span>${pesoInfo}</div>${crcl < 50 ? '<div class="result-warn">⚠ CrCl &lt;50 mL/min — revisar ajuste de dosis en la ficha.</div>' : ''}`;
   box.classList.add('show');
 }
 
