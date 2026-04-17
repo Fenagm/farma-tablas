@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, shrink-to-fit=no">
 <meta name="theme-color" content="#ba0070">
 <meta name="description" content="Sistema de consulta de antibióticos y estabilidades para farmacia clínica">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,10 +26,10 @@
   --shadow-lg:0 8px 32px rgba(0,0,0,.14);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);height:100vh;overflow:hidden;margin:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;margin:0;}
 
 /* LOGIN */
-#login{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;max-width:480px;margin:0 auto;width:100%;
+#login{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;width:100%;
   background:radial-gradient(ellipse 120% 80% at 50% 0%, #fff8fc 0%, #ffe7f4 100%);}
 .login-bg{position:absolute;inset:0;overflow:hidden;}
 .login-bg::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;
@@ -57,7 +57,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 .lcard-deco{position:absolute;top:20px;right:24px;font-size:32px;opacity:.08;}
 
 /* APP SHELL */
-#app{display:none;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;}
+#app{display:none;flex-direction:column;min-height:100vh;width:100%;}
 .hdr{height:var(--header);background:var(--white);display:flex;align-items:center;
   padding:0 20px 0 24px;gap:14px;border-bottom:1px solid var(--g1);flex-shrink:0;z-index:10;}
 .hdr-logo{display:flex;align-items:center;gap:10px;}
@@ -87,8 +87,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 .bnav-btn .bnav-lbl{font-size:9.5px;font-weight:600;letter-spacing:.02em;font-family:'DM Sans',sans-serif;white-space:nowrap;}
 .bnav-btn.on{color:var(--rose);}
 
-.layout{display:flex;flex:1;overflow:hidden;width:100%;}
-.page{display:none;flex:1;overflow:hidden;}
+.layout{display:flex;flex:1;overflow:auto;width:100%;}
+.page{display:none;flex:1;overflow:auto;}
 .page.on{display:flex;}
 
 .sidebar{width:var(--sidebar);flex-shrink:0;background:var(--white);border-right:1px solid var(--g1);display:flex;flex-direction:column;overflow:hidden;}
@@ -116,7 +116,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 .clear-btn{background:none;border:1px solid var(--g2);border-radius:16px;padding:2px 10px;font-size:9px;cursor:pointer;color:var(--g3);transition:all .1s;}
 .clear-btn:hover{background:var(--g1);}
 
-.main{flex:1;overflow-y:auto;background:var(--paper);width:100%;}
+.main{flex:1;overflow:auto;background:var(--paper);width:100%;}
 .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--g3);gap:14px;text-align:center;padding:40px;}
 .empty-ico{font-size:52px;opacity:.2;}
 .empty-txt{font-size:13px;font-weight:500;}
@@ -188,7 +188,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 .result-warn{margin-top:10px;font-size:11px;color:var(--copper);background:#fef5ec;border-radius:6px;padding:8px 10px;border:1px solid #fde3c2;}
 
 /* ESTABILIDADES */
-.estab-page{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--paper);width:100%;}
+.estab-page{flex:1;display:flex;flex-direction:column;overflow:auto;background:var(--paper);width:100%;}
 .estab-toolbar{padding:12px 20px;background:var(--white);border-bottom:1px solid var(--g1);display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-shrink:0;}
 .estab-srch-wrap{position:relative;flex:1;min-width:180px;}
 .estab-srch-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--g3);pointer-events:none;}
@@ -223,7 +223,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 #admin-panel.open, #estab-admin-panel.open { display:flex; }
 .admin-modal {
   background:var(--white); border-radius:20px; width:min(700px,95vw); max-height:88vh;
-  display:flex; flex-direction:column; overflow:hidden; box-shadow:var(--shadow-lg);
+  display:flex; flex-direction:column; overflow:auto; box-shadow:var(--shadow-lg);
 }
 #estab-admin-panel .admin-modal { width:min(600px,95vw); }
 .admin-hdr { padding:20px 26px; border-bottom:1px solid var(--g1); display:flex; align-items:center; gap:12px; }
@@ -249,6 +249,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 .admin-notice { font-size:11.5px; color:#047857; display:none; padding:10px 13px; background:#d1fae5; border-radius:8px; margin-bottom:12px; font-weight:500; }
 
 /* RENAL TABLE (mejora visual) */
+.renal-table { max-width: 100%; display: block; overflow-x: auto; overflow-y: auto; max-height: 400px; }
 .renal-table th { background: var(--paper2); font-weight: 600; white-space: nowrap; }
 .renal-table td { white-space: pre-wrap; }
 @media (max-width: 768px) {
@@ -290,6 +291,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
     font-size: 12px;
     white-space: pre-wrap;
     overflow-x: auto;
+    overflow-y: auto;
     max-height: 400px;
     margin: 0;
 }
@@ -352,9 +354,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 }
 
 /* FONDO CLARO EN ESCRITORIO */
-@media(min-width:481px){
+@media(min-width:769px){
   body{background:linear-gradient(135deg, #fff4fa 0%, #ffe7f4 100%);}
   #login{box-shadow:0 0 40px rgba(0,0,0,.3);}
+  #app{max-width:1200px;margin:0 auto;border-left:1px solid var(--g1);border-right:1px solid var(--g1);box-shadow:0 0 40px rgba(0,0,0,.1);}
 }
 </style>
 </head>
@@ -382,6 +385,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
     </div>
     <nav class="hdr-nav">
       <button class="hnav-btn on" id="nav-abx" onclick="switchPage('page-abx',this)"><span>💊</span> Antibióticos</button>
+      <button class="hnav-btn" id="nav-calc" onclick="switchPage('page-calc',this)"><span>🧮</span> Calcular</button>
       <button class="hnav-btn" id="nav-estab" onclick="switchPage('page-estab',this)"><span>🧪</span> Estabilidades</button>
     </nav>
     <div class="hdr-btns">
@@ -409,13 +413,33 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
       </main>
     </div>
 
+    <!-- CALCULAR -->
+    <div class="page" id="page-calc">
+      <main class="main" style="overflow-y:auto;">
+        <div class="detail" style="padding:20px 20px 80px;">
+          <div class="tools-section">
+            <div class="tools-tabs">
+              <button class="ttab on" onclick="switchTab(event,'tab-crcl')">🧪 CrCl Renal</button>
+              <button class="ttab" onclick="switchTab(event,'tab-dosis')">⚖️ Dosis Obesos</button>
+              <button class="ttab" onclick="switchTab(event,'tab-pk')">📈 T&gt;CMI</button>
+              <button class="ttab" onclick="switchTab(event,'tab-cp')">💉 Pico/Valle</button>
+            </div>
+            <div class="tool-panel on" id="tab-crcl"><div class="tool-card"><h3>Aclaramiento de Creatinina (Cockcroft-Gault)</h3><p>Estima la función renal para ajustar dosis. Usar peso ajustado en obesos automáticamente.</p><div class="tool-grid"><div class="tf"><label>Edad (años)</label><input id="cg-edad" type="number" placeholder="65"></div><div class="tf"><label>Peso real (kg)</label><input id="cg-peso" type="number" placeholder="70"></div><div class="tf"><label>Talla (cm) <span style="font-weight:400;text-transform:none;color:var(--g3);">(opcional)</span></label><input id="cg-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="cg-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div><div class="tf"><label>Creatinina (mg/dL)</label><input id="cg-cr" type="number" step="0.1" placeholder="1.0"></div></div><button class="calc-btn" onclick="calcCrCl()">Calcular CrCl →</button><div class="result-box" id="res-crcl"></div></div></div>
+            <div class="tool-panel" id="tab-dosis"><div class="tool-card"><h3>Peso de Dosificación en Obesidad</h3><p>Calcula IBW (Devine), ABW (factor 0.4) e IMC para orientar la dosificación.</p><div class="tool-grid"><div class="tf"><label>Peso real (kg)</label><input id="ob-peso" type="number" placeholder="110"></div><div class="tf"><label>Talla (cm)</label><input id="ob-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="ob-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div></div><button class="calc-btn" onclick="calcObesos()">Calcular →</button><div class="result-box" id="res-obesos"></div></div></div>
+            <div class="tool-panel" id="tab-pk"><div class="tool-card"><h3>T&gt;CMI — Antibióticos Tiempo-Dependientes</h3><p>Estima % del intervalo con concentración libre sobre la CMI. Meta ≥ 40–50% (beta-lactámicos).</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="pk-dosis" type="number" placeholder="1000"></div><div class="tf"><label>Intervalo (hs)</label><input id="pk-intervalo" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="pk-vd" type="number" step="0.01" placeholder="0.2"></div><div class="tf"><label>Peso (kg)</label><input id="pk-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="pk-t12" type="number" step="0.1" placeholder="1.5"></div><div class="tf"><label>CMI (mg/L)</label><input id="pk-cmi" type="number" step="0.001" placeholder="2"></div><div class="tf"><label>Fracción libre (fu)</label><input id="pk-fu" type="number" step="0.01" placeholder="0.9"></div></div><button class="calc-btn" onclick="calcPKPD()">Calcular T&gt;CMI →</button><div class="result-box" id="res-pkpd"></div></div></div>
+            <div class="tool-panel" id="tab-cp"><div class="tool-card"><h3>Concentración Pico y Valle (1 compartimento)</h3><p>Cmax y Ctrough al estado estacionario. Útil para aminoglucósidos y vancomicina.</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="cp-dosis" type="number" placeholder="500"></div><div class="tf"><label>Intervalo τ (hs)</label><input id="cp-tau" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="cp-vd" type="number" step="0.01" placeholder="0.25"></div><div class="tf"><label>Peso (kg)</label><input id="cp-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="cp-t12" type="number" step="0.1" placeholder="2"></div><div class="tf"><label>Infusión (min)</label><input id="cp-tinf" type="number" placeholder="30"></div></div><button class="calc-btn" onclick="calcPicovalle()">Calcular →</button><div class="result-box" id="res-cp"></div></div></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
     <!-- ESTABILIDADES -->
     <div class="page" id="page-estab">
       <div class="estab-page">
         <div class="estab-toolbar">
           <div class="estab-srch-wrap"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg><input class="estab-srch" id="estab-srch" type="text" placeholder="Buscar fármaco, vehículo, observaciones…" oninput="filterEstab()"></div>
           <div class="estab-tipo-filter"><button class="etfbtn on" onclick="filterEstabTipo('',this)">Todos</button><button class="etfbtn" onclick="filterEstabTipo('QMT',this)">QMT</button><button class="etfbtn" onclick="filterEstabTipo('NO_QMT',this)">No QMT</button></div>
-          <button class="hbtn accent" onclick="openEstabAdmin()">＋ Agregar</button>
+          <button class="hbtn accent" id="estabAddBtn" onclick="openEstabAdmin()">＋ Agregar</button>
         </div>
         <div class="estab-meta" id="estab-meta"></div>
         <div class="estab-table-wrap">
@@ -428,6 +452,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);h
 
   <nav class="bottom-nav">
     <button class="bnav-btn on" id="bnav-abx" onclick="switchPage('page-abx',this,true)"><span class="bnav-ico">💊</span><span class="bnav-lbl">Antibióticos</span></button>
+    <button class="bnav-btn" id="bnav-calc" onclick="switchPage('page-calc',this,true)"><span class="bnav-ico">🧮</span><span class="bnav-lbl">Calcular</span></button>
     <button class="bnav-btn" id="bnav-estab" onclick="switchPage('page-estab',this,true)"><span class="bnav-ico">🧪</span><span class="bnav-lbl">Estabilidades</span></button>
   </nav>
 </div>
