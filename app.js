@@ -1,4 +1,3 @@
-Prueba la IA directamente en tus aplicaciones favoritas … Usa Gemini para generar borradores y pulir contenido, y disfruta de Gemini Pro con acceso a la IA de nueva generación de Google por 19,99 US$ 0 US$ durante 1 mes
 // Importar configuración de Firebase desde archivo separado
 // Esto permite gestionar las credenciales de forma más organizada y segura
 
@@ -83,7 +82,7 @@ function renderAjusteRenal(d) {
         const afterText = lines.slice(tableEnd);
         const extraText = [...beforeText, ...afterText];
         if (extraText.length) {
-            html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n')).replace(/\n/g, '<br>')}</div>`;
+            html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n'))}</div>`;
         }
         return html;
     };
@@ -130,16 +129,15 @@ function renderAjusteRenal(d) {
                 html += '</tbody></table></div>';
                 const nonTableLines = lines.filter(line => !tableLines.includes(line));
                 if (nonTableLines.length) {
-                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n')).replace(/\n/g, '<br>')}</div>`;
+                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n'))}</div>`;
                 }
                 return html;
             }
         }
-        return `<div class="body-txt">${escapeHtml(raw).replace(/\n/g, '<br>')}</div>`;
+        return `<pre class="pre-renal">${escapeHtml(raw)}</pre>`;
     }
     // 3. Fallback
-    const renalText = d.ajuste_renal || '—';
-    return `<div class="body-txt">${escapeHtml(renalText).replace(/\n/g, '<br>')}</div>`;
+    return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
 }
 function getValue(d, keys, defaultValue = '—') {
     for (let key of keys) {
