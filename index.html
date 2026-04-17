@@ -262,22 +262,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     border-radius: 8px;
     background: var(--white);
 }
-.renal-table { width: 100%; }
 .farma-table {
     width: 100%;
     border-collapse: collapse;
     min-width: 520px;
     table-layout: auto;
-}
-.renal-table th { 
-    background: var(--rose-pale); 
-    font-weight: 600; 
-    white-space: nowrap;
-    border: 1px solid var(--g2);
-    padding: 8px 9px;
-    text-align: left;
-    background-color: #FFFFFF;
-    font-size: 12px;
 }
 .farma-table thead {
     background-color: #4A746A;
@@ -312,6 +301,62 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 @media (max-width: 768px) {
   .farma-table { font-size: 10px; min-width: 480px; }
   .farma-table th, .farma-table td { padding: 7px 8px; }
+}
+
+/* Tabla interna de .renal-table (genera renderAjusteRenal fallback) */
+.renal-table table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 400px;
+    table-layout: auto;
+}
+.renal-table table thead tr {
+    background-color: var(--rose-pale);
+}
+.renal-table table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--rose-pale);
+    color: var(--rose);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 9px 10px;
+    border: 1px solid var(--g2);
+    text-align: left;
+    white-space: normal;
+    word-break: break-word;
+}
+.renal-table table tbody tr {
+    transition: background-color 0.15s ease;
+}
+.renal-table table tbody tr:nth-child(even) {
+    background-color: var(--paper);
+}
+.renal-table table tbody tr:hover {
+    background-color: var(--rose-pale);
+}
+.renal-table table td {
+    padding: 8px 10px;
+    border: 1px solid var(--g2);
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.5;
+    font-size: 12.5px;
+    color: var(--ink);
+    white-space: normal;
+    word-break: break-word;
+}
+.renal-table table td:first-child {
+    font-weight: 600;
+    color: var(--ink2);
+    min-width: 120px;
+}
+@media (max-width: 768px) {
+  .renal-table table { min-width: 360px; }
+  .renal-table table th, .renal-table table td { padding: 6px 8px; font-size: 11px; }
 }
 
 /* SCROLLBAR */

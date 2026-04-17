@@ -136,8 +136,41 @@ function renderAjusteRenal(d) {
         }
         return `<pre class="pre-renal">${escapeHtml(raw)}</pre>`;
     }
-    // 3. Fallback
-    return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
+    // 3. Intentar parsear markdown table desde ajuste_renal como último recurso
+    if (d.ajuste_renal) {
+        const raw = d.ajuste_renal;
+        const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+        const tableLines = lines.filter(line => line.includes('|'));
+        const separatorRegex = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/;
+        const separatorIdx = tableLines.findIndex(line => separatorRegex.test(line));
+
+        if (tableLines.length >= 3 && separatorIdx === 1) {
+            const parseRow = (line) => line
+                .replace(/^\|/, '')
+                .replace(/\|$/, '')
+                .split('|')
+                .map(cell => cell.trim());
+            const headers = parseRow(tableLines[0]);
+            const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+            if (headers.length && bodyRows.length) {
+                let html = '<div class="renal-table"><table><thead><tr>';
+                html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+                html += '</tr></thead><tbody>';
+                bodyRows.forEach(row => {
+                    html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
+                });
+                html += '</tbody></table></div>';
+                const nonTableLines = lines.filter(line => !tableLines.includes(line));
+                if (nonTableLines.length) {
+                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n'))}</div>`;
+                }
+                return html;
+            }
+        }
+        // Si no tiene formato de tabla, mostrar como texto
+        return `<div class="body-txt">${escapeHtml(raw)}</div>`;
+    }
+    return `<div class="body-txt">—</div>`;
 }
 function getValue(d, keys, defaultValue = '—') {
     for (let key of keys) {
