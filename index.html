@@ -249,9 +249,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .admin-notice { font-size:11.5px; color:#047857; display:none; padding:10px 13px; background:#d1fae5; border-radius:8px; margin-bottom:12px; font-weight:500; }
 
 /* RENAL TABLE (mejora visual) */
-.renal-table { max-width: 100%; display: block; overflow-x: auto; overflow-y: auto; max-height: 400px; }
-.renal-table th { background: var(--paper2); font-weight: 600; white-space: nowrap; }
-.renal-table td { white-space: pre-wrap; }
+.renal-table { 
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    max-width: 100%;
+    display: block;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 400px;
+}
+.renal-table table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+.renal-table th { 
+    background: var(--paper2); 
+    font-weight: 600; 
+    white-space: nowrap;
+    border: 1px solid var(--g2);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+    position: sticky;
+    top: 0;
+}
+.renal-table td { 
+    white-space: pre-wrap;
+    border: 1px solid var(--g2);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+.renal-table tbody tr:nth-child(even) {
+    background-color: var(--paper);
+}
 @media (max-width: 768px) {
   .renal-table { font-size: 10px; }
   .renal-table th, .renal-table td { padding: 4px 6px; }
@@ -263,26 +296,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 ::-webkit-scrollbar-thumb { background:var(--g1); border-radius:3px; }
 ::-webkit-scrollbar-thumb:hover { background:var(--g2); }
 
-  .renal-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-}
-.renal-table th, .renal-table td {
-    border: 1px solid var(--g2);
-    padding: 8px 10px;
-    text-align: left;
-    vertical-align: top;
-}
-.renal-table th {
-    background: var(--paper2);
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-}
-.renal-table tbody tr:nth-child(even) {
-    background-color: var(--paper);
-}
 .pre-renal {
     background: var(--paper);
     padding: 12px;
@@ -294,26 +307,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     overflow-y: auto;
     max-height: 400px;
     margin: 0;
-}
-.monografia-content {
-    transition: max-height 0.2s ease-out;
-    overflow: auto;
-}
-.toggle-monografia {
-    background: none;
-    border: none;
-    color: var(--rose);
-    cursor: pointer;
-    font-size: 9px;
-    font-weight: 600;
-    text-transform: uppercase;
-    margin-left: auto;
-}
-.section-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 22px 0 14px;
 }
   
 /* RESPONSIVE */
