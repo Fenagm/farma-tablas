@@ -33,21 +33,7 @@ function escapeHtml(str) {
 function renderAjusteRenal(d) {
     const renderMarkdownTableFromText = (inputText) => {
         if (!inputText) return null;
-        let normalizedRaw = inputText
-            .replace(/\r/g, '')
-            .replace(/\\n/g, '\n')
-            .trim();
-
-        if (normalizedRaw.startsWith('"') && normalizedRaw.endsWith('"')) {
-            normalizedRaw = normalizedRaw.slice(1, -1).trim();
-        }
-
-        // Algunos registros legacy llegan en una sola línea con filas separadas como "| |"
-        // (ej: exportes/copias de Firestore). Convertimos ese patrón a saltos de línea.
-        if (!normalizedRaw.includes('\n') && normalizedRaw.includes('| |')) {
-            normalizedRaw = normalizedRaw.replace(/\|\s*\|/g, '|\n|');
-        }
-
+        const normalizedRaw = inputText.replace(/\r/g, '');
         const lines = normalizedRaw.split('\n').map(l => l.trim()).filter(Boolean);
         if (!lines.length) return null;
 
@@ -63,26 +49,6 @@ function renderAjusteRenal(d) {
             .replace(/\|$/, '')
             .split('|')
             .map(cell => cell.trim());
-        const isDashToken = (token) => /^:?-{3,}:?$/.test(token.replace(/[–—]/g, '-').trim());
-        const buildTableHtml = (headers, bodyRows, extraText = []) => {
-            if (!headers.length || !bodyRows.length) return null;
-            const colCount = Math.max(headers.length, ...bodyRows.map(r => r.length));
-            const normalizedHeaders = [...headers];
-            while (normalizedHeaders.length < colCount) normalizedHeaders.push('');
-
-            let html = '<div class="renal-table-wrap"><table class="estab-table renal-estab-table"><thead><tr>';
-            html += normalizedHeaders.map(h => `<th>${escapeHtml(h)}</th>`).join('');
-            html += '</tr></thead><tbody>';
-            bodyRows.forEach(row => {
-                const normalized = normalizedHeaders.map((_, idx) => row[idx] || '—');
-                html += '<tr>' + normalized.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>';
-            });
-            html += '</tbody></table></div>';
-            if (extraText.length) {
-                html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n'))}</div>`;
-            }
-            return html;
-        };
 
         let tableStart = -1;
         let tableEnd = -1;
@@ -96,49 +62,29 @@ function renderAjusteRenal(d) {
             break;
         }
 
-        if (tableStart >= 0) {
-            const tableLines = lines.slice(tableStart, tableEnd);
-            const headers = parseRow(tableLines[0]);
-            const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
-            const beforeText = lines.slice(0, tableStart);
-            const afterText = lines.slice(tableEnd);
-            const html = buildTableHtml(headers, bodyRows, [...beforeText, ...afterText]);
-            if (html) return html;
-        }
+        if (tableStart < 0) return null;
 
-        // Fallback genérico: si hay filas con pipes pero sin separador markdown válido,
-        // usar la primera fila como encabezado y el resto como cuerpo.
-        const genericRows = lines
-            .filter(line => line.includes('|'))
-            .map(parseRow)
-            .filter(row => row.some(cell => cell && cell.trim()));
-        if (genericRows.length >= 2) {
-            const headers = genericRows[0];
-            const bodyRows = genericRows.slice(1);
-            const html = buildTableHtml(headers, bodyRows);
-            if (html) return html;
-        }
+        const tableLines = lines.slice(tableStart, tableEnd);
+        const headers = parseRow(tableLines[0]);
+        const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+        if (!headers.length || !bodyRows.length) return null;
 
-        // Fallback adicional: tabla legacy "stream" en una línea sin filas claras
-        const tokens = normalizedRaw.split('|').map(t => t.trim()).filter(Boolean);
-        const sepStart = tokens.findIndex(isDashToken);
-        if (sepStart <= 0) return null;
-        let colCount = 0;
-        for (let i = sepStart; i < tokens.length; i++) {
-            if (!isDashToken(tokens[i])) break;
-            colCount++;
+        let html = '<div class="renal-table"><table><thead><tr>';
+        html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+        html += '</tr></thead><tbody>';
+        bodyRows.forEach(row => {
+            const normalized = headers.map((_, idx) => row[idx] || '—');
+            html += '<tr>' + normalized.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>';
+        });
+        html += '</tbody></table></div>';
+
+        const beforeText = lines.slice(0, tableStart);
+        const afterText = lines.slice(tableEnd);
+        const extraText = [...beforeText, ...afterText];
+        if (extraText.length) {
+            html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n'))}</div>`;
         }
-        if (colCount < 2) return null;
-        const headerStart = Math.max(0, sepStart - colCount);
-        const headers = tokens.slice(headerStart, sepStart);
-        const prefix = tokens.slice(0, headerStart).join(' ');
-        const bodyTokens = tokens.slice(sepStart + colCount);
-        const bodyRows = [];
-        for (let i = 0; i < bodyTokens.length; i += colCount) {
-            const row = bodyTokens.slice(i, i + colCount);
-            if (row.length) bodyRows.push(row);
-        }
-        return buildTableHtml(headers, bodyRows, prefix ? [prefix] : []);
+        return html;
     };
 
     // 1. Si existe la tabla estructurada, la usamos
@@ -147,7 +93,7 @@ function renderAjusteRenal(d) {
         const headers = table.headers || [];
         const rows = table.rows || [];
         if (headers.length && rows.length) {
-            let html = '<div class="renal-table-wrap"><table class="estab-table renal-estab-table">';
+            let html = '<div class="renal-table table-wrapper"><table class="farma-table">';
             html += '<thead><tr>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr></thead>';
             html += '<tbody>';
             for (const row of rows) {
@@ -159,13 +105,36 @@ function renderAjusteRenal(d) {
     }
     // 2. Intentar parsear markdown table desde ajuste_renal_raw (o campos legacy)
     if (d.ajuste_renal_raw) {
-        const parsedRaw = renderMarkdownTableFromText(d.ajuste_renal_raw);
-        if (parsedRaw) return parsedRaw;
-    }
-    if (d.ajuste_renal) {
-        const parsedLegacy = renderMarkdownTableFromText(d.ajuste_renal);
-        if (parsedLegacy) return parsedLegacy;
-        return `<pre class="pre-renal">${escapeHtml(d.ajuste_renal)}</pre>`;
+        const raw = d.ajuste_renal_raw;
+        const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+        const tableLines = lines.filter(line => line.includes('|'));
+        const separatorRegex = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/;
+        const separatorIdx = tableLines.findIndex(line => separatorRegex.test(line));
+
+        if (tableLines.length >= 3 && separatorIdx === 1) {
+            const parseRow = (line) => line
+                .replace(/^\|/, '')
+                .replace(/\|$/, '')
+                .split('|')
+                .map(cell => cell.trim());
+            const headers = parseRow(tableLines[0]);
+            const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+            if (headers.length && bodyRows.length) {
+                let html = '<div class="renal-table"><table><thead><tr>';
+                html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+                html += '</tr></thead><tbody>';
+                bodyRows.forEach(row => {
+                    html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
+                });
+                html += '</tbody></table></div>';
+                const nonTableLines = lines.filter(line => !tableLines.includes(line));
+                if (nonTableLines.length) {
+                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n'))}</div>`;
+                }
+                return html;
+            }
+        }
+        return `<pre class="pre-renal">${escapeHtml(raw)}</pre>`;
     }
     // 3. Fallback
     return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
