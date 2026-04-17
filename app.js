@@ -82,7 +82,7 @@ function renderAjusteRenal(d) {
         const afterText = lines.slice(tableEnd);
         const extraText = [...beforeText, ...afterText];
         if (extraText.length) {
-            html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n'))}</div>`;
+            html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n')).replace(/\n/g, '<br>')}</div>`;
         }
         return html;
     };
@@ -129,15 +129,16 @@ function renderAjusteRenal(d) {
                 html += '</tbody></table></div>';
                 const nonTableLines = lines.filter(line => !tableLines.includes(line));
                 if (nonTableLines.length) {
-                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n'))}</div>`;
+                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n')).replace(/\n/g, '<br>')}</div>`;
                 }
                 return html;
             }
         }
-        return `<pre class="pre-renal">${escapeHtml(raw)}</pre>`;
+        return `<div class="body-txt">${escapeHtml(raw).replace(/\n/g, '<br>')}</div>`;
     }
     // 3. Fallback
-    return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
+    const renalText = d.ajuste_renal || '—';
+    return `<div class="body-txt">${escapeHtml(renalText).replace(/\n/g, '<br>')}</div>`;
 }
 function getValue(d, keys, defaultValue = '—') {
     for (let key of keys) {
