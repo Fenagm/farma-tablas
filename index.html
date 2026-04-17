@@ -312,8 +312,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .renal-table table {
     width: max-content;         /* se expande tanto como necesite */
     min-width: 100%;            /* nunca más chica que el contenedor */
-    border-collapse: separate;  /* necesario para sticky columns con bordes */
-    border-spacing: 0;
+    border-collapse: collapse;
     table-layout: auto;
 }
 .renal-table table thead tr {
@@ -322,7 +321,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .renal-table table thead th {
     position: sticky;
     top: 0;
-    z-index: 2;
+    z-index: 1;
     background-color: var(--rose-pale);
     color: var(--rose);
     font-size: 11px;
@@ -330,19 +329,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     letter-spacing: .05em;
     text-transform: uppercase;
     padding: 9px 12px;
-    border-bottom: 1px solid var(--g2);
-    border-right: 1px solid var(--g2);
+    border: 1px solid var(--g2);
     text-align: left;
-    white-space: nowrap;
-}
-/* Primera columna del thead: sticky izquierda + arriba */
-.renal-table table thead th:first-child {
-    position: sticky;
-    left: 0;
-    top: 0;
-    z-index: 3;  /* encima de otros th sticky y de los td sticky */
-    background-color: var(--rose-pale);
-    box-shadow: 2px 0 4px rgba(0,0,0,.08);
+    white-space: nowrap;    /* headers nunca se parten */
 }
 .renal-table table tbody tr {
     transition: background-color 0.15s ease;
@@ -355,8 +344,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 }
 .renal-table table td {
     padding: 8px 12px;
-    border-bottom: 1px solid var(--g2);
-    border-right: 1px solid var(--g2);
+    border: 1px solid var(--g2);
     text-align: left;
     vertical-align: top;
     line-height: 1.5;
@@ -364,29 +352,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     color: var(--ink);
     white-space: normal;
     word-break: break-word;
-    min-width: 140px;
-    max-width: 260px;
+    min-width: 140px;       /* ancho mínimo por celda de datos */
+    max-width: 260px;       /* evitar columnas demasiado anchas */
 }
-/* Primera columna del cuerpo: sticky izquierda */
 .renal-table table td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 1;
-    background-color: var(--white);
     font-weight: 600;
     color: var(--ink2);
-    white-space: nowrap;
+    white-space: nowrap;    /* valores de CrCl nunca se parten */
     min-width: auto;
     max-width: none;
-    box-shadow: 2px 0 4px rgba(0,0,0,.06);
-    border-right: 1px solid var(--g2);
-}
-/* Mantener fondo correcto en filas alternadas y hover */
-.renal-table table tbody tr:nth-child(even) td:first-child {
-    background-color: var(--paper);
-}
-.renal-table table tbody tr:hover td:first-child {
-    background-color: var(--rose-pale);
 }
 
 @media (max-width: 768px) {
