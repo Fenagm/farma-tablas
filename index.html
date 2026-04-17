@@ -130,7 +130,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .cards-grid{display:grid;gap:16px;}
 .two-col{grid-template-columns:1fr 1fr;}
 .three-col{grid-template-columns:1fr 1fr 1fr;}
-.card{background:var(--white);border-radius:var(--r);padding:20px 24px;border:1px solid var(--paper3);box-shadow:var(--shadow);overflow:hidden;}
+.card{background:var(--white);border-radius:var(--r);padding:20px 24px;border:1px solid var(--paper3);box-shadow:var(--shadow);}
 .card-full{grid-column:1/-1;}
 .card-ttl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--rose);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .card-ttl::before{content:'';width:16px;height:1.5px;background:var(--rose);}
@@ -250,37 +250,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .admin-notice { font-size:11.5px; color:#047857; display:none; padding:10px 13px; background:#d1fae5; border-radius:8px; margin-bottom:12px; font-weight:500; }
 
 /* RENAL TABLE (mejora visual) */
+/* El wrapper hace scroll horizontal; la tabla mantiene su ancho natural */
 .renal-table {
     width: 100%;
-    font-size: 12px;
     max-width: 100%;
     display: block;
     overflow-x: auto;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* scroll suave en iOS */
-    max-height: 420px;
+    -webkit-overflow-scrolling: touch;
+    max-height: 440px;
     border: 1px solid var(--g2);
     border-radius: 8px;
     background: var(--white);
     position: relative;
+    /* Cursor para indicar que es scrolleable */
+    cursor: auto;
 }
-/* Indicador de scroll horizontal en mobile */
-.renal-table::after {
-    content: '';
+/* Degradado derecho — hint visual de scroll en mobile */
+.renal-scroll-hint {
     display: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 28px;
-    height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,.85));
-    pointer-events: none;
-    border-radius: 0 8px 8px 0;
+    font-size: 10px;
+    color: var(--g3);
+    text-align: right;
+    margin-top: 4px;
+    padding-right: 2px;
+    letter-spacing: .02em;
 }
 .farma-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 520px;
+    min-width: 600px;   /* forzar scroll horizontal en lugar de comprimir */
     table-layout: auto;
 }
 .farma-table thead {
@@ -291,38 +290,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     position: sticky;
     top: 0;
     z-index: 1;
+    white-space: nowrap;  /* headers nunca envuelven en desktop */
 }
 .farma-table th,
 .farma-table td {
-    padding: 11px 12px;
-    border-bottom: 1px solid rgba(74, 124, 122, 0.2);
-    white-space: pre-wrap;
-    word-break: break-word;
     border: 1px solid var(--g2);
-    padding: 8px 9px;
+    padding: 8px 10px;
     text-align: left;
     vertical-align: top;
     line-height: 1.45;
+    white-space: normal;
+    word-break: break-word;
 }
+.farma-table td:first-child { white-space: nowrap; font-weight: 600; }
 .farma-table tbody tr { transition: background-color 0.2s ease; }
 .farma-table tbody tr:nth-child(even) { background-color: #FAF5F0; }
 .farma-table tbody tr:hover { background-color: #F4EFE9; }
 .farma-table tbody tr:hover td:first-child { box-shadow: inset 4px 0 0 0 #B87333; }
-.farma-table a:focus,
-.farma-table button:focus {
-    outline: 2px solid #B0703B;
-    outline-offset: 2px;
-}
-@media (max-width: 768px) {
-  .farma-table { font-size: 10px; min-width: 360px; }
-  .farma-table th, .farma-table td { padding: 6px 7px; }
-}
 
-/* Tabla interna de .renal-table (genera renderAjusteRenal fallback) */
+/* Tabla interna generada por renderAjusteRenal (path ajuste_renal) */
 .renal-table table {
-    width: 100%;
+    width: max-content;         /* se expande tanto como necesite */
+    min-width: 100%;            /* nunca más chica que el contenedor */
     border-collapse: collapse;
-    min-width: 400px;
     table-layout: auto;
 }
 .renal-table table thead tr {
@@ -336,13 +326,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     color: var(--rose);
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: .06em;
+    letter-spacing: .05em;
     text-transform: uppercase;
-    padding: 9px 10px;
+    padding: 9px 12px;
     border: 1px solid var(--g2);
     text-align: left;
-    white-space: normal;
-    word-break: break-word;
+    white-space: nowrap;    /* headers nunca se parten */
 }
 .renal-table table tbody tr {
     transition: background-color 0.15s ease;
@@ -354,7 +343,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     background-color: var(--rose-pale);
 }
 .renal-table table td {
-    padding: 8px 10px;
+    padding: 8px 12px;
     border: 1px solid var(--g2);
     text-align: left;
     vertical-align: top;
@@ -363,21 +352,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     color: var(--ink);
     white-space: normal;
     word-break: break-word;
+    min-width: 140px;       /* ancho mínimo por celda de datos */
+    max-width: 260px;       /* evitar columnas demasiado anchas */
 }
 .renal-table table td:first-child {
     font-weight: 600;
     color: var(--ink2);
-    min-width: 120px;
+    white-space: nowrap;    /* valores de CrCl nunca se parten */
+    min-width: auto;
+    max-width: none;
 }
+
 @media (max-width: 768px) {
-  .renal-table { max-height: 340px; border-radius: 6px; }
-  .renal-table::after { display: block; } /* mostrar degradado hint */
-  .renal-table table { min-width: 320px; font-size: 11px; }
-  .renal-table table thead th { font-size: 10px; padding: 7px 8px; letter-spacing: .03em; }
-  .renal-table table td { padding: 6px 8px; font-size: 11px; line-height: 1.4; }
-  .renal-table table td:first-child { min-width: 90px; }
-  /* Reducir padding del card contenedor para ganar ancho */
-  .card-full { padding: 14px 10px; }
+  .renal-table {
+    max-height: 360px;
+    border-radius: 6px;
+    /* Scrollbar visible en mobile para indicar contenido */
+    scrollbar-width: thin;
+    scrollbar-color: var(--g2) transparent;
+  }
+  .renal-scroll-hint { display: block; } /* mostrar hint de scroll */
+  /* Reducir padding del card para ganar ancho */
+  .card-full { padding: 14px 10px !important; }
+  /* Tabla interna: dimensiones para scroll horizontal real */
+  .renal-table table { }
+  .renal-table table thead th { font-size: 10px; padding: 7px 10px; }
+  .renal-table table td { font-size: 11.5px; padding: 7px 10px; min-width: 120px; max-width: 200px; }
+  .renal-table table td:first-child { min-width: 80px; }
+  /* farma-table en mobile: igual, scroll horizontal */
+  .farma-table { font-size: 10.5px; min-width: 500px; }
+  .farma-table th, .farma-table td { padding: 7px 8px; }
 }
 
 /* SCROLLBAR */

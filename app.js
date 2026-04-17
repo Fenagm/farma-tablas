@@ -360,7 +360,7 @@ function renderDetail(name) {
             <!-- Ajustes -->
             <div class="dtab-panel" id="dt-ajustes">
                 <div class="cards-grid two-col">
-                    <div class="card card-full"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
+                    <div class="card card-full"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}<div class="renal-scroll-hint">← deslizá para ver más →</div></div>
                     <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${escapeHtml(ajuste_hepatico)}</div></div>
                     <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${escapeHtml(ajuste_obesos)}</div></div>
                 </div>
