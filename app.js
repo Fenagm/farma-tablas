@@ -31,13 +31,123 @@ function escapeHtml(str) {
 }
 
 function renderAjusteRenal(d) {
+    const renderMarkdownTableFromText = (inputText) => {
+        if (!inputText) return null;
+        let normalizedRaw = inputText
+            .replace(/\r/g, '')
+            .replace(/\\n/g, '\n')
+            .trim();
+
+        if (normalizedRaw.startsWith('"') && normalizedRaw.endsWith('"')) {
+            normalizedRaw = normalizedRaw.slice(1, -1).trim();
+        }
+
+        // Algunos registros legacy llegan en una sola línea con filas separadas como "| |"
+        // (ej: exportes/copias de Firestore). Convertimos ese patrón a saltos de línea.
+        if (!normalizedRaw.includes('\n') && normalizedRaw.includes('| |')) {
+            normalizedRaw = normalizedRaw.replace(/\|\s*\|/g, '|\n|');
+        }
+
+        const lines = normalizedRaw.split('\n').map(l => l.trim()).filter(Boolean);
+        if (!lines.length) return null;
+
+        const isSeparatorLine = (line) => {
+            const clean = line.trim();
+            if (!clean.includes('|')) return false;
+            const withoutAllowed = clean.replace(/[|:\-\s–—]/g, '');
+            const dashCount = (clean.match(/[-–—]/g) || []).length;
+            return withoutAllowed.length === 0 && dashCount >= 3;
+        };
+        const parseRow = (line) => line
+            .replace(/^\|/, '')
+            .replace(/\|$/, '')
+            .split('|')
+            .map(cell => cell.trim());
+        const isDashToken = (token) => /^:?-{3,}:?$/.test(token.replace(/[–—]/g, '-').trim());
+        const buildTableHtml = (headers, bodyRows, extraText = []) => {
+            if (!headers.length || !bodyRows.length) return null;
+            const colCount = Math.max(headers.length, ...bodyRows.map(r => r.length));
+            const normalizedHeaders = [...headers];
+            while (normalizedHeaders.length < colCount) normalizedHeaders.push('');
+
+            let html = '<div class="renal-table-wrap"><table class="estab-table renal-estab-table"><thead><tr>';
+            html += normalizedHeaders.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+            html += '</tr></thead><tbody>';
+            bodyRows.forEach(row => {
+                const normalized = normalizedHeaders.map((_, idx) => row[idx] || '—');
+                html += '<tr>' + normalized.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>';
+            });
+            html += '</tbody></table></div>';
+            if (extraText.length) {
+                html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n'))}</div>`;
+            }
+            return html;
+        };
+
+        let tableStart = -1;
+        let tableEnd = -1;
+        for (let i = 0; i < lines.length - 2; i++) {
+            const header = lines[i];
+            const separator = lines[i + 1];
+            if (!header.includes('|') || !isSeparatorLine(separator)) continue;
+            tableStart = i;
+            tableEnd = i + 2;
+            while (tableEnd < lines.length && lines[tableEnd].includes('|')) tableEnd++;
+            break;
+        }
+
+        if (tableStart >= 0) {
+            const tableLines = lines.slice(tableStart, tableEnd);
+            const headers = parseRow(tableLines[0]);
+            const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+            const beforeText = lines.slice(0, tableStart);
+            const afterText = lines.slice(tableEnd);
+            const html = buildTableHtml(headers, bodyRows, [...beforeText, ...afterText]);
+            if (html) return html;
+        }
+
+        // Fallback genérico: si hay filas con pipes pero sin separador markdown válido,
+        // usar la primera fila como encabezado y el resto como cuerpo.
+        const genericRows = lines
+            .filter(line => line.includes('|'))
+            .map(parseRow)
+            .filter(row => row.some(cell => cell && cell.trim()));
+        if (genericRows.length >= 2) {
+            const headers = genericRows[0];
+            const bodyRows = genericRows.slice(1);
+            const html = buildTableHtml(headers, bodyRows);
+            if (html) return html;
+        }
+
+        // Fallback adicional: tabla legacy "stream" en una línea sin filas claras
+        const tokens = normalizedRaw.split('|').map(t => t.trim()).filter(Boolean);
+        const sepStart = tokens.findIndex(isDashToken);
+        if (sepStart <= 0) return null;
+        let colCount = 0;
+        for (let i = sepStart; i < tokens.length; i++) {
+            if (!isDashToken(tokens[i])) break;
+            colCount++;
+        }
+        if (colCount < 2) return null;
+        const headerStart = Math.max(0, sepStart - colCount);
+        const headers = tokens.slice(headerStart, sepStart);
+        const prefix = tokens.slice(0, headerStart).join(' ');
+        const bodyTokens = tokens.slice(sepStart + colCount);
+        const bodyRows = [];
+        for (let i = 0; i < bodyTokens.length; i += colCount) {
+            const row = bodyTokens.slice(i, i + colCount);
+            if (row.length) bodyRows.push(row);
+        }
+        return buildTableHtml(headers, bodyRows, prefix ? [prefix] : []);
+    };
+
     // 1. Si existe la tabla estructurada, la usamos
     if (d.ajuste_renal_table && typeof d.ajuste_renal_table === 'object') {
         const table = d.ajuste_renal_table;
         const headers = table.headers || [];
         const rows = table.rows || [];
         if (headers.length && rows.length) {
-            let html = '<div class="renal-table"><table>';
+            let html = '<div class="renal-table-wrap"><table class="estab-table renal-estab-table">';
             html += '<thead><tr>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr></thead>';
             html += '<tbody>';
             for (const row of rows) {
@@ -47,9 +157,15 @@ function renderAjusteRenal(d) {
             return html;
         }
     }
-    // 2. Si no hay tabla, mostrar ajuste_renal_raw con formato pre
+    // 2. Intentar parsear markdown table desde ajuste_renal_raw (o campos legacy)
     if (d.ajuste_renal_raw) {
-        return `<pre class="pre-renal">${escapeHtml(d.ajuste_renal_raw)}</pre>`;
+        const parsedRaw = renderMarkdownTableFromText(d.ajuste_renal_raw);
+        if (parsedRaw) return parsedRaw;
+    }
+    if (d.ajuste_renal) {
+        const parsedLegacy = renderMarkdownTableFromText(d.ajuste_renal);
+        if (parsedLegacy) return parsedLegacy;
+        return `<pre class="pre-renal">${escapeHtml(d.ajuste_renal)}</pre>`;
     }
     // 3. Fallback
     return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
@@ -223,10 +339,10 @@ function renderDetail(name) {
             </div>
             <div class="detail-tabs">
                 <button class="dtab on" onclick="switchDTab(event,'dt-general')">💊 General</button>
-                <button class="dtab" onclick="switchDTab(event,'dt-monografia')">📄 Monografía</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-ajustes')">⚖️ Ajustes</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-seguridad')">⚠️ Seguridad</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-pk')">📈 Farmacocinética</button>
+                <button class="dtab" onclick="switchDTab(event,'dt-monografia')">📄 Monografía</button>
             </div>
 
             <!-- General -->
@@ -239,18 +355,10 @@ function renderDetail(name) {
                 </div>
             </div>
 
-            <!-- Monografía -->
-            <div class="dtab-panel" id="dt-monografia">
-                <div class="card">
-                    <div class="card-ttl">Contenido Completo</div>
-                    <div class="body-txt" style="white-space:pre-wrap;">${escapeHtml(contenido_completo)}</div>
-                </div>
-            </div>
-
             <!-- Ajustes -->
             <div class="dtab-panel" id="dt-ajustes">
                 <div class="cards-grid two-col">
-                    <div class="card"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
+                    <div class="card card-full"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
                     <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${escapeHtml(ajuste_hepatico)}</div></div>
                     <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${escapeHtml(ajuste_obesos)}</div></div>
                 </div>
@@ -269,6 +377,14 @@ function renderDetail(name) {
             <!-- Farmacocinética -->
             <div class="dtab-panel" id="dt-pk">
                 <div class="card"><div class="card-ttl">Farmacocinética</div><div class="body-txt">${escapeHtml(farmacocinetica)}</div></div>
+            </div>
+
+            <!-- Monografía -->
+            <div class="dtab-panel" id="dt-monografia">
+                <div class="card">
+                    <div class="card-ttl">Contenido Completo</div>
+                    <div class="body-txt" style="white-space:pre-wrap;">${escapeHtml(contenido_completo)}</div>
+                </div>
             </div>
         </div>`;
     filterList();
@@ -292,7 +408,7 @@ function buildToolsHTML() {
       <button class="ttab" onclick="switchTab(event,'tab-pk')">📈 T&gt;CMI</button>
       <button class="ttab" onclick="switchTab(event,'tab-cp')">💉 Pico/Valle</button>
     </div>
-    <div class="tool-panel on" id="tab-crcl"><div class="tool-card"><h3>Aclaramiento de Creatinina (Cockcroft-Gault)</h3><p>Estima la función renal para ajustar dosis. Usar peso ajustado en obesos automáticamente.</p><div class="tool-grid"><div class="tf"><label>Edad (años)</label><input id="cg-edad" type="number" placeholder="65"></div><div class="tf"><label>Peso real (kg)</label><input id="cg-peso" type="number" placeholder="70"></div><div class="tf"><label>Talla (cm) <span style="font-weight:400;text-transform:none;color:var(--g3);">(opcional)</span></label><input id="cg-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="cg-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div><div class="tf"><label>Creatinina (mg/dL)</label><input id="cg-cr" type="number" step="0.1" placeholder="1.0"></div></div><button class="calc-btn" onclick="calcCrCl()">Calcular CrCl →</button><div class="result-box" id="res-crcl"></div></div></div>
+    <div class="tool-panel on" id="tab-crcl"><div class="tool-card"><h3>Aclaramiento de Creatinina (Cockcroft-Gault)</h3><p>Estima la función renal para ajustar dosis. Usar peso ajustado en obesos automáticamente.</p><div class="tool-grid"><div class="tf"><label>Edad (años)</label><input id="cg-edad" type="number" placeholder="65"></div><div class="tf"><label>Peso real (kg)</label><input id="cg-peso" type="number" placeholder="70"></div><div class="tf"><label>Altura <span style="font-weight:400;text-transform:none;color:var(--g3);">(opcional, cm o m)</span></label><input id="cg-talla" type="number" step="0.01" placeholder="170 o 1.70"></div><div class="tf"><label>Sexo</label><select id="cg-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div><div class="tf"><label>Creatinina (mg/dL)</label><input id="cg-cr" type="number" step="0.1" placeholder="1.0"></div></div><button class="calc-btn" onclick="calcCrCl()">Calcular CrCl →</button><div class="result-box" id="res-crcl"></div></div></div>
     <div class="tool-panel" id="tab-dosis"><div class="tool-card"><h3>Peso de Dosificación en Obesidad</h3><p>Calcula IBW (Devine), ABW (factor 0.4) e IMC para orientar la dosificación.</p><div class="tool-grid"><div class="tf"><label>Peso real (kg)</label><input id="ob-peso" type="number" placeholder="110"></div><div class="tf"><label>Talla (cm)</label><input id="ob-talla" type="number" placeholder="170"></div><div class="tf"><label>Sexo</label><select id="ob-sexo"><option value="M">Masculino</option><option value="F">Femenino</option></select></div></div><button class="calc-btn" onclick="calcObesos()">Calcular →</button><div class="result-box" id="res-obesos"></div></div></div>
     <div class="tool-panel" id="tab-pk"><div class="tool-card"><h3>T&gt;CMI — Antibióticos Tiempo-Dependientes</h3><p>Estima % del intervalo con concentración libre sobre la CMI. Meta ≥ 40–50% (beta-lactámicos).</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="pk-dosis" type="number" placeholder="1000"></div><div class="tf"><label>Intervalo (hs)</label><input id="pk-intervalo" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="pk-vd" type="number" step="0.01" placeholder="0.2"></div><div class="tf"><label>Peso (kg)</label><input id="pk-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="pk-t12" type="number" step="0.1" placeholder="1.5"></div><div class="tf"><label>CMI (mg/L)</label><input id="pk-cmi" type="number" step="0.001" placeholder="2"></div><div class="tf"><label>Fracción libre (fu)</label><input id="pk-fu" type="number" step="0.01" placeholder="0.9"></div></div><button class="calc-btn" onclick="calcPKPD()">Calcular T&gt;CMI →</button><div class="result-box" id="res-pkpd"></div></div></div>
     <div class="tool-panel" id="tab-cp"><div class="tool-card"><h3>Concentración Pico y Valle (1 compartimento)</h3><p>Cmax y Ctrough al estado estacionario. Útil para aminoglucósidos y vancomicina.</p><div class="tool-grid"><div class="tf"><label>Dosis (mg)</label><input id="cp-dosis" type="number" placeholder="500"></div><div class="tf"><label>Intervalo τ (hs)</label><input id="cp-tau" type="number" placeholder="8"></div><div class="tf"><label>Vd (L/kg)</label><input id="cp-vd" type="number" step="0.01" placeholder="0.25"></div><div class="tf"><label>Peso (kg)</label><input id="cp-peso" type="number" placeholder="70"></div><div class="tf"><label>t½ (hs)</label><input id="cp-t12" type="number" step="0.1" placeholder="2"></div><div class="tf"><label>Infusión (min)</label><input id="cp-tinf" type="number" placeholder="30"></div></div><button class="calc-btn" onclick="calcPicovalle()">Calcular →</button><div class="result-box" id="res-cp"></div></div></div>
@@ -310,7 +426,7 @@ function switchTab(e, id) {
 function calcCrCl() {
   const edad = parseFloat(document.getElementById('cg-edad').value);
   const peso = parseFloat(document.getElementById('cg-peso').value);
-  const tallaInput = document.getElementById('cg-talla').value;
+  const tallaInputRaw = document.getElementById('cg-talla').value.trim();
   const sexo = document.getElementById('cg-sexo').value;
   const cr = parseFloat(document.getElementById('cg-cr').value);
   
@@ -320,10 +436,12 @@ function calcCrCl() {
   let ibw = null;
   let usaAjustado = false;
   
-  // Si se proporciona la talla, calcular IBW y peso ajustado para obesos
-  if (tallaInput && !isNaN(parseFloat(tallaInput))) {
-    const talla = parseFloat(tallaInput);
-    const tallaIn = talla / 2.54;
+  // Si se proporciona la altura (opcional), calcular IBW y peso ajustado para obesos
+  // Acepta cm (ej. 170) o metros (ej. 1.70)
+  if (tallaInputRaw && !isNaN(parseFloat(tallaInputRaw))) {
+    let tallaCm = parseFloat(tallaInputRaw);
+    if (tallaCm > 0 && tallaCm <= 3) tallaCm *= 100;
+    const tallaIn = tallaCm / 2.54;
     ibw = sexo === 'M' ? 50 + 2.3 * (tallaIn - 60) : 45.5 + 2.3 * (tallaIn - 60);
     ibw = Math.max(ibw, 45);
     
