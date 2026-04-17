@@ -37,8 +37,8 @@ function renderAjusteRenal(d) {
         const headers = table.headers || [];
         const rows = table.rows || [];
         if (headers.length && rows.length) {
-            let html = '<div style="overflow-x:auto; overflow-y:auto; max-height:400px;"><table class="renal-table">';
-            html += '<thead>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</thead>';
+            let html = '<div class="renal-table"><table>';
+            html += '<thead><tr>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr></thead>';
             html += '<tbody>';
             for (const row of rows) {
                 html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
@@ -214,16 +214,6 @@ function renderDetail(name) {
     const interacciones = getValue(d, ['interacciones']);
     const farmacocinetica = getValue(d, ['farmacocinetica']);
     const contenido_completo = getValue(d, ['contenido_completo']);
-
-const extraHTML = contenido_completo !== '—' ? `
-<div class="section-divider">
-    <span>Monografía</span>
-    <button class="toggle-monografia" onclick="toggleMonografia(this)">▲ Mostrar menos</button>
-</div>
-<div class="card monografia-content" style="max-height:300px; overflow-y:auto;">
-    <div class="card-ttl">Contenido Completo</div>
-    <div class="body-txt" style="white-space:pre-wrap;">${escapeHtml(contenido_completo)}</div>
-</div>` : '';
     
     document.getElementById('main').innerHTML = `
         <div class="detail">
@@ -233,6 +223,7 @@ const extraHTML = contenido_completo !== '—' ? `
             </div>
             <div class="detail-tabs">
                 <button class="dtab on" onclick="switchDTab(event,'dt-general')">💊 General</button>
+                <button class="dtab" onclick="switchDTab(event,'dt-monografia')">📄 Monografía</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-ajustes')">⚖️ Ajustes</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-seguridad')">⚠️ Seguridad</button>
                 <button class="dtab" onclick="switchDTab(event,'dt-pk')">📈 Farmacocinética</button>
@@ -246,7 +237,14 @@ const extraHTML = contenido_completo !== '—' ? `
                     <div class="card"><div class="card-ttl">Administración</div><div class="body-txt">${escapeHtml(administracion)}</div></div>
                     <div class="card"><div class="card-ttl">Preparación / Reconstitución</div><div class="body-txt">${escapeHtml(preparacion)}</div></div>
                 </div>
-                ${extraHTML}
+            </div>
+
+            <!-- Monografía -->
+            <div class="dtab-panel" id="dt-monografia">
+                <div class="card">
+                    <div class="card-ttl">Contenido Completo</div>
+                    <div class="body-txt" style="white-space:pre-wrap;">${escapeHtml(contenido_completo)}</div>
+                </div>
             </div>
 
             <!-- Ajustes -->
@@ -664,16 +662,6 @@ function loadAdminData(name) {
     document.getElementById('af-completo').value = d.contenido_completo || '';
 
     document.getElementById('delBtn').style.display = name ? 'block' : 'none';
-}
-function toggleMonografia(btn) {
-    const content = btn.closest('.section-divider').nextElementSibling;
-    if (content.style.maxHeight) {
-        content.style.maxHeight = '';
-        btn.innerHTML = '▲ Mostrar menos';
-    } else {
-        content.style.maxHeight = '300px';
-        btn.innerHTML = '▼ Mostrar más';
-    }
 }
 // ── CONTROL DE SESIÓN ──────────────────────────────────────────────────
 auth.onAuthStateChanged(async (user) => {
