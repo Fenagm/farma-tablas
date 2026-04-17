@@ -93,7 +93,7 @@ function renderAjusteRenal(d) {
         const headers = table.headers || [];
         const rows = table.rows || [];
         if (headers.length && rows.length) {
-            let html = '<div class="renal-table"><table>';
+            let html = '<div class="renal-table table-wrapper"><table class="farma-table">';
             html += '<thead><tr>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr></thead>';
             html += '<tbody>';
             for (const row of rows) {

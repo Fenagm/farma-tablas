@@ -262,7 +262,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     border-radius: 8px;
     background: var(--white);
 }
-.renal-table table {
+.renal-table { width: 100%; }
+.farma-table {
     width: 100%;
     border-collapse: collapse;
     min-width: 520px;
@@ -275,12 +276,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     border: 1px solid var(--g2);
     padding: 8px 9px;
     text-align: left;
-    vertical-align: top;
+    background-color: #FFFFFF;
+    font-size: 12px;
+}
+.farma-table thead {
+    background-color: #4A746A;
+    color: #FFFFFF;
+}
+.farma-table thead th {
     position: sticky;
     top: 0;
     z-index: 1;
 }
-.renal-table td { 
+.farma-table th,
+.farma-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid rgba(74, 124, 122, 0.2);
     white-space: pre-wrap;
     word-break: break-word;
     border: 1px solid var(--g2);
@@ -289,12 +300,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
     vertical-align: top;
     line-height: 1.45;
 }
-.renal-table tbody tr:nth-child(even) {
-    background-color: var(--paper);
+.farma-table tbody tr { transition: background-color 0.2s ease; }
+.farma-table tbody tr:nth-child(even) { background-color: #FAF5F0; }
+.farma-table tbody tr:hover { background-color: #F4EFE9; }
+.farma-table tbody tr:hover td:first-child { box-shadow: inset 4px 0 0 0 #B87333; }
+.farma-table a:focus,
+.farma-table button:focus {
+    outline: 2px solid #B0703B;
+    outline-offset: 2px;
 }
 @media (max-width: 768px) {
-  .renal-table { font-size: 10px; }
-  .renal-table th, .renal-table td { padding: 4px 6px; }
+  .farma-table { font-size: 10px; min-width: 480px; }
+  .farma-table th, .farma-table td { padding: 7px 8px; }
 }
 
 /* SCROLLBAR */
