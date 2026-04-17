@@ -49,7 +49,59 @@ function renderAjusteRenal(d) {
     }
     // 2. Si no hay tabla, mostrar ajuste_renal_raw con formato pre
     if (d.ajuste_renal_raw) {
-        return `<pre class="pre-renal">${escapeHtml(d.ajuste_renal_raw)}</pre>`;
+        const raw = d.ajuste_renal_raw;
+        const normalizedRaw = raw.replace(/\r/g, '');
+        const lines = normalizedRaw.split('\n').map(l => l.trim()).filter(Boolean);
+        const isSeparatorLine = (line) => {
+            const clean = line.trim();
+            if (!clean.includes('|')) return false;
+            const withoutAllowed = clean.replace(/[|:\-\s–—]/g, '');
+            const dashCount = (clean.match(/[-–—]/g) || []).length;
+            return withoutAllowed.length === 0 && dashCount >= 3;
+        };
+        const parseRow = (line) => line
+            .replace(/^\|/, '')
+            .replace(/\|$/, '')
+            .split('|')
+            .map(cell => cell.trim());
+
+        // Detecta primer bloque de tabla markdown contiguo (header + separator + rows)
+        let tableStart = -1;
+        let tableEnd = -1;
+        for (let i = 0; i < lines.length - 2; i++) {
+            const header = lines[i];
+            const separator = lines[i + 1];
+            if (!header.includes('|') || !isSeparatorLine(separator)) continue;
+            tableStart = i;
+            tableEnd = i + 2;
+            while (tableEnd < lines.length && lines[tableEnd].includes('|')) tableEnd++;
+            break;
+        }
+
+        if (tableStart >= 0) {
+            const tableLines = lines.slice(tableStart, tableEnd);
+            const headers = parseRow(tableLines[0]);
+            const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+            if (headers.length && bodyRows.length) {
+                let html = '<div class="renal-table"><table><thead><tr>';
+                html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+                html += '</tr></thead><tbody>';
+                bodyRows.forEach(row => {
+                    const normalized = headers.map((_, idx) => row[idx] || '—');
+                    html += '<tr>' + normalized.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>';
+                });
+                html += '</tbody></table></div>';
+
+                const beforeText = lines.slice(0, tableStart);
+                const afterText = lines.slice(tableEnd);
+                const extraText = [...beforeText, ...afterText];
+                if (extraText.length) {
+                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(extraText.join('\n'))}</div>`;
+                }
+                return html;
+            }
+        }
+        return `<pre class="pre-renal">${escapeHtml(raw)}</pre>`;
     }
     // 3. Fallback
     return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
@@ -250,7 +302,7 @@ function renderDetail(name) {
             <!-- Ajustes -->
             <div class="dtab-panel" id="dt-ajustes">
                 <div class="cards-grid two-col">
-                    <div class="card"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
+                    <div class="card card-full"><div class="card-ttl">Ajuste Renal</div>${renderAjusteRenal(d)}</div>
                     <div class="card"><div class="card-ttl">Ajuste Hepático</div><div class="body-txt">${escapeHtml(ajuste_hepatico)}</div></div>
                     <div class="card"><div class="card-ttl">Ajuste en Obesos</div><div class="body-txt">${escapeHtml(ajuste_obesos)}</div></div>
                 </div>
