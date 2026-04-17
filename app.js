@@ -37,7 +37,7 @@ function renderAjusteRenal(d) {
         const headers = table.headers || [];
         const rows = table.rows || [];
         if (headers.length && rows.length) {
-            let html = '<div style="overflow-x:auto;"><table class="renal-table">';
+            let html = '<div style="overflow-x:auto; overflow-y:auto; max-height:400px;"><table class="renal-table">';
             html += '<thead>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</thead>';
             html += '<tbody>';
             for (const row of rows) {
@@ -100,14 +100,18 @@ function switchPage(pageId, btn, isMobile = false) {
         document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('on'));
         btn.classList.add('on');
         document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('on'));
-        const topId = pageId === 'page-abx' ? 'nav-abx' : 'nav-estab';
+        let topId = 'nav-abx';
+        if (pageId === 'page-estab') topId = 'nav-estab';
+        else if (pageId === 'page-calc') topId = 'nav-abx';
         const topBtn = document.getElementById(topId);
         if (topBtn) topBtn.classList.add('on');
     } else {
         document.querySelectorAll('.hnav-btn').forEach(b => b.classList.remove('on'));
         btn.classList.add('on');
         document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('on'));
-        const botId = pageId === 'page-abx' ? 'bnav-abx' : 'bnav-estab';
+        let botId = 'bnav-abx';
+        if (pageId === 'page-estab') botId = 'bnav-estab';
+        else if (pageId === 'page-calc') botId = 'bnav-calc';
         const botBtn = document.getElementById(botId);
         if (botBtn) botBtn.classList.add('on');
     }
