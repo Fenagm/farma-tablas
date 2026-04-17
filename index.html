@@ -130,8 +130,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .cards-grid{display:grid;gap:16px;}
 .two-col{grid-template-columns:1fr 1fr;}
 .three-col{grid-template-columns:1fr 1fr 1fr;}
-.card{background:var(--white);border-radius:var(--r);padding:20px 24px;border:1px solid var(--paper3);box-shadow:var(--shadow);}
-.card-full{grid-column:1/-1;}
+.card{background:var(--white);border-radius:var(--r);padding:20px 24px;border:1px solid var(--paper3);box-shadow:var(--shadow);min-width:0;}
+.card-full{grid-column:1/-1;min-width:0;}
 .card-ttl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--rose);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .card-ttl::before{content:'';width:16px;height:1.5px;background:var(--rose);}
 .body-txt{font-size:14px;line-height:1.7;color:var(--ink);white-space:pre-wrap;}
