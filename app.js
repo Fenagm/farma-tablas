@@ -33,21 +33,7 @@ function escapeHtml(str) {
 function renderAjusteRenal(d) {
     const renderMarkdownTableFromText = (inputText) => {
         if (!inputText) return null;
-        let normalizedRaw = inputText
-            .replace(/\r/g, '')
-            .replace(/\\n/g, '\n')
-            .trim();
-
-        if (normalizedRaw.startsWith('"') && normalizedRaw.endsWith('"')) {
-            normalizedRaw = normalizedRaw.slice(1, -1).trim();
-        }
-
-        // Algunos registros legacy llegan en una sola línea con filas separadas como "| |"
-        // (ej: exportes/copias de Firestore). Convertimos ese patrón a saltos de línea.
-        if (!normalizedRaw.includes('\n') && normalizedRaw.includes('| |')) {
-            normalizedRaw = normalizedRaw.replace(/\|\s*\|/g, '|\n|');
-        }
-
+        const normalizedRaw = inputText.replace(/\r/g, '');
         const lines = normalizedRaw.split('\n').map(l => l.trim()).filter(Boolean);
         if (!lines.length) return null;
 
@@ -119,13 +105,36 @@ function renderAjusteRenal(d) {
     }
     // 2. Intentar parsear markdown table desde ajuste_renal_raw (o campos legacy)
     if (d.ajuste_renal_raw) {
-        const parsedRaw = renderMarkdownTableFromText(d.ajuste_renal_raw);
-        if (parsedRaw) return parsedRaw;
-    }
-    if (d.ajuste_renal) {
-        const parsedLegacy = renderMarkdownTableFromText(d.ajuste_renal);
-        if (parsedLegacy) return parsedLegacy;
-        return `<pre class="pre-renal">${escapeHtml(d.ajuste_renal)}</pre>`;
+        const raw = d.ajuste_renal_raw;
+        const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+        const tableLines = lines.filter(line => line.includes('|'));
+        const separatorRegex = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/;
+        const separatorIdx = tableLines.findIndex(line => separatorRegex.test(line));
+
+        if (tableLines.length >= 3 && separatorIdx === 1) {
+            const parseRow = (line) => line
+                .replace(/^\|/, '')
+                .replace(/\|$/, '')
+                .split('|')
+                .map(cell => cell.trim());
+            const headers = parseRow(tableLines[0]);
+            const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+            if (headers.length && bodyRows.length) {
+                let html = '<div class="renal-table"><table><thead><tr>';
+                html += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+                html += '</tr></thead><tbody>';
+                bodyRows.forEach(row => {
+                    html += '<tr>' + row.map(cell => `<td>${escapeHtml(cell || '—')}</td>`).join('') + '</tr>';
+                });
+                html += '</tbody></table></div>';
+                const nonTableLines = lines.filter(line => !tableLines.includes(line));
+                if (nonTableLines.length) {
+                    html += `<div class="body-txt" style="margin-top:10px;">${escapeHtml(nonTableLines.join('\n'))}</div>`;
+                }
+                return html;
+            }
+        }
+        return `<pre class="pre-renal">${escapeHtml(raw)}</pre>`;
     }
     // 3. Fallback
     return `<div class="body-txt">${escapeHtml(d.ajuste_renal || '—')}</div>`;
