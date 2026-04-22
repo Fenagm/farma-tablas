@@ -11,7 +11,8 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: github-pages   # ← agregar esta línea
+    environment: github-pages
+
     steps:
       - name: Checkout repositorio
         uses: actions/checkout@v4
