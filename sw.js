@@ -1,11 +1,10 @@
-const CACHE_NAME = 'farmacia-clinica-v2';
+const CACHE_NAME = 'farmacia-clinica-v3';
 const BASE_PATH = self.location.pathname.replace(/[^/]+$/, '');
 const ASSETS_TO_CACHE = [
   BASE_PATH,
   `${BASE_PATH}index.html`,
   `${BASE_PATH}app.js`,
   `${BASE_PATH}manifest.json`,
-  `${BASE_PATH}firebase-config.js`
 ];
 
 // Instalación del Service Worker
