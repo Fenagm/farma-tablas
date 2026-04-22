@@ -1,5 +1,6 @@
 // Configuración de Firebase
-// NOTA: En producción, considera usar variables de entorno mediante un proceso de build
+// Las credenciales son inyectadas automáticamente por GitHub Actions
+// desde los Secrets del repositorio. No editar manualmente.
 const firebaseConfig = {
   apiKey: "__FIREBASE_API_KEY__",
   authDomain: "__FIREBASE_AUTH_DOMAIN__",
@@ -8,4 +9,3 @@ const firebaseConfig = {
   messagingSenderId: "__FIREBASE_MESSAGING_SENDER_ID__",
   appId: "__FIREBASE_APP_ID__"
 };
-
