@@ -172,6 +172,78 @@ function renderAjusteRenal(d) {
     }
     return `<div class="body-txt">—</div>`;
 }
+
+function linkifyText(text) {
+    const urlRegex = /(https?:\/\/[^\s<]+)/gi;
+    return text.replace(urlRegex, (url) => {
+        const safeUrl = escapeHtml(url);
+        return `<a class="mono-link" href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>`;
+    });
+}
+
+function renderMonografia(content) {
+    if (!content || !content.toString().trim()) return '<div class="body-txt">—</div>';
+
+    const normalized = content.toString().replace(/\r/g, '').trim();
+    const lines = normalized.split('\n');
+
+    const isSeparatorLine = (line) => {
+        if (!line.includes('|')) return false;
+        const clean = line.trim();
+        const withoutAllowed = clean.replace(/[|:\-\s–—]/g, '');
+        const dashCount = (clean.match(/[-–—]/g) || []).length;
+        return withoutAllowed.length === 0 && dashCount >= 3;
+    };
+
+    const parseRow = (line) => line
+        .replace(/^\|/, '')
+        .replace(/\|$/, '')
+        .split('|')
+        .map(cell => cell.trim());
+
+    const blocks = [];
+    let textBuffer = [];
+    const flushText = () => {
+        if (!textBuffer.length) return;
+        const txt = escapeHtml(textBuffer.join('\n'));
+        blocks.push(`<div class="body-txt mono-text">${linkifyText(txt)}</div>`);
+        textBuffer = [];
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes('|') && i + 1 < lines.length && isSeparatorLine(lines[i + 1])) {
+            flushText();
+            const tableLines = [line, lines[i + 1]];
+            i += 2;
+            while (i < lines.length && lines[i].includes('|')) {
+                tableLines.push(lines[i]);
+                i++;
+            }
+            i--;
+
+            const headers = parseRow(tableLines[0]);
+            const bodyRows = tableLines.slice(2).map(parseRow).filter(r => r.length);
+            if (headers.length && bodyRows.length) {
+                let tableHtml = '<div class="mono-table-wrap"><table class="mono-table"><thead><tr>';
+                tableHtml += headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
+                tableHtml += '</tr></thead><tbody>';
+                for (const row of bodyRows) {
+                    const normalizedRow = headers.map((_, idx) => row[idx] || '—');
+                    tableHtml += '<tr>' + normalizedRow.map(cell => `<td>${linkifyText(escapeHtml(cell))}</td>`).join('') + '</tr>';
+                }
+                tableHtml += '</tbody></table></div>';
+                blocks.push(tableHtml);
+            }
+        } else {
+            textBuffer.push(line);
+        }
+    }
+    flushText();
+
+    return blocks.join('');
+}
+
 function getValue(d, keys, defaultValue = '—') {
     for (let key of keys) {
         if (d[key] && d[key].toString().trim()) return d[key];
@@ -417,7 +489,7 @@ function renderDetail(name) {
             <div class="dtab-panel" id="dt-monografia">
                 <div class="card">
                     <div class="card-ttl">Contenido Completo</div>
-                    <div class="body-txt" style="white-space:pre-wrap;">${escapeHtml(contenido_completo)}</div>
+                    ${renderMonografia(contenido_completo)}
                 </div>
             </div>
         </div>`;
