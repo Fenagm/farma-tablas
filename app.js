@@ -208,6 +208,22 @@ function doLogout() {
     if (!auth) return location.reload();
     auth.signOut().then(() => location.reload());
 }
+
+function showEditorsPopup() {
+    alert(`Autores:
+- Filippo Gisela
+- Melin Virginia
+- Rodríguez Florencia
+- Santillán Mayra Nicole
+- Toucedo Mailén
+
+Agradecimientos:
+- Giovanetti Franco
+- Kot Lilian Jeanette
+
+Revisión:
+- Angulo Sergio`);
+}
 document.getElementById('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('usr').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pwd').focus(); });
 
