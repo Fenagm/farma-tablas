@@ -534,11 +534,18 @@ function calcMDRD() {
   const sexo = document.getElementById('mdrd-sexo').value;
   const raza = document.getElementById('mdrd-raza').value;
   const cr = parseFloat(document.getElementById('mdrd-cr').value);
+
   if ([edad, cr].some(isNaN)) return alert('Completá edad y creatinina');
+  if (edad <= 0 || cr <= 0) return alert('Edad y creatinina deben ser mayores a 0');
 
   let egfr = 175 * (cr ** -1.154) * (edad ** -0.203);
   if (sexo === 'F') egfr *= 0.742;
   if (raza === 'negro') egfr *= 1.210;
+
+  if (!Number.isFinite(egfr) || egfr <= 0) {
+    return alert('No se pudo calcular MDRD. Verificá los valores ingresados.');
+  }
+
   egfr = Math.round(egfr * 10) / 10;
 
   let cat = '', cls = '';
