@@ -626,7 +626,7 @@ const firebaseConfig = {
 };
 </script>
   
-<script src="app.js"></script>
+<script src="app.js?v=20260511"></script>
 <script>
 // Registrar Service Worker + flujo de instalación PWA
 if ('serviceWorker' in navigator) {
@@ -650,7 +650,7 @@ if ('serviceWorker' in navigator) {
   });
 
   window.addEventListener('load', () => {
-navigator.serviceWorker.register('/farma-tablas/sw.js', { scope: '/farma-tablas/' })
+navigator.serviceWorker.register('/farma-tablas/sw.js?v=20260511', { scope: '/farma-tablas/' })
       .then((registration) => {
         console.log('[PWA] SW registrado:', registration.scope);
       })
