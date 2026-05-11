@@ -1,4 +1,4 @@
-const CACHE_NAME = 'farmacia-clinica-v3';
+const CACHE_NAME = 'farmacia-clinica-v4';
 const BASE_PATH = self.location.pathname.replace(/[^/]+$/, '');
 const ASSETS_TO_CACHE = [
   BASE_PATH,
